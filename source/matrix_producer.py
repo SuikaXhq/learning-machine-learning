@@ -1,24 +1,26 @@
 import numpy as np
 import random
 import scipy.linalg
+#from matplotlib import pyplot as plt
 
 def hyper_para():
-    N = int(input('Input the dimension N: '))
+    P = int(input('Input the dimension of feature P: '))
     K = int(input('Input the number of task K: '))
-    P = int(input('Input the number of subsets P: '))
-    return N, K, P
+    S = int(input('Input the number of subsets S: '))
+    N = int(input('Input the number of samples for each task N: '))
+    return P, K, S, N
 
-def models(n, type=-1, a=0.5):
+def models(p, type=-1, a=0.5):
     '''
     give a sparse concentration matrix
     parameter:
-        n: matrix dimension
+        p: matrix dimension
         type: int, -1=random model, 0,1,2,3,... refers to different models
         a: parameter in model 1
 
     returns: a concentration matrix
     '''
-    n_models = 1 # number of models
+    n_models = 2 # number of models
 
     # model -1 (random model)
     if type==-1:
@@ -26,24 +28,38 @@ def models(n, type=-1, a=0.5):
 
     # model 0
     if type==0:
-        M = np.zeros(shape=(n,n))
-        for i in range(n):
-            for j in range(n):
-                M[i,j] = a ** np.fabs(i-j)
+        M = np.zeros(shape=(p,p))
+        for i in range(p):
+            for j in range(p):
+                M[i,j] = a ** abs(i-j)
         return M
 
     # model 1
     if type==1:
+        for i in range(p):
+            for j in range(p):
+                l = abs(i-j)
+                if l==0:
+                    m = 1
+                elif l==1:
+                    m = 0.4
+                elif l==2 or l==3:
+                    m = 0.2
+                elif l==4:
+                    m = 0.1
+                else:
+                    m = 0
+                M[i,j] = m
+
+    # model 2
+    if type==2:
         pass
 
 def combine(submatrices_list):
     '''
     combine matrices into a blockwise diagonal matrix
     '''
-    result = submatrices_list[0]
-    for m in submatrices_list[1:]:
-        result = scipy.linalg.block_diag(result, m)
-    return result
+    return scipy.linalg.block_diag(*submatrices_list)
 
 def divide(k, low, high=None):
     '''
@@ -61,19 +77,31 @@ def divide(k, low, high=None):
     split.sort()
     return split
 
-def generater(N, K, P):
-    split = divide(P, low=1, high=N)
+def generate_in_cov(P, K, S, equal_split=False):
+    '''
+    generates inverse covariance matrix with PxP dimension, K tasks and S subsets of features. if equal_split=True, the subsets are equally divided.
+    '''
+
+    if equal_split == True:
+        # equally spliting
+        split = list(range(0, P+1, P//S))
+        split.pop()
+        split.append(P)
+        
+    else:
+        # inequally spliting
+        split = divide(S, low=1, high=P)
+        split.insert(0, 0)
+        split.append(P) # modify the split list to fit the iteration
     #print(split)
     
     # generate K tasks
-    split.insert(0, 0)
-    split.append(N) # modify the split list to fit the iteration
     results = []
     for i in range(K):
-        sub_split_n = [random.randint( 1, (split[i+1]-split[i])//2 if split[i+1]-split[i]>1 else 1 ) for i in range(P)]
+        sub_split_n = [random.randint( 1, (split[i+1]-split[i])//2 if split[i+1]-split[i]>1 else 1 ) for i in range(S)]
         #print(sub_split_n)
         sub_split = []
-        for i in range(P):
+        for i in range(S):
             sub_split.extend(divide(sub_split_n[i], low=split[i]+1, high=split[i+1]))
         final_split = sub_split
         final_split.extend(split)
@@ -91,11 +119,23 @@ def generater(N, K, P):
     
     return np.array(results)
 
+def generate_data(Omega, n):
+    '''
+    generate sample by concentration matrix Omega.
+    '''
+    Sigma = np.linalg.inv(Omega)
+    p = len(Sigma)
+    return np.random.multivariate_normal(np.zeros(p), Sigma, size=n)
+
 
 def main():
-    N, K, P = hyper_para()
-    results = generater(N, K, P)
-    print(results)
+    P, K, S, N = hyper_para()
+    results = generate_in_cov(P, K, S)
+    for i in range(len(results)):
+        np.savetxt('conc{}.csv'.format(i), results[i], delimiter=',')
+#        plt.imshow(results[i], cmap='gray')
+#        plt.show()
+        np.savetxt('data{}.csv'.format(i), generate_data(results[i], N), delimiter=',')
 
 
 if __name__ == '__main__':
