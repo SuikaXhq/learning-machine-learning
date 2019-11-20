@@ -4,13 +4,16 @@ import scipy.linalg
 #from matplotlib import pyplot as plt
 
 def hyper_para():
+    '''
+    returns P, K, S, N
+    '''
     P = int(input('Input the dimension of feature P: '))
     K = int(input('Input the number of task K: '))
     S = int(input('Input the number of subsets S: '))
     N = int(input('Input the number of samples for each task N: '))
     return P, K, S, N
 
-def models(p, type=-1, a=0.5):
+def models(p, type=-1, a=0.7):
     '''
     give a sparse concentration matrix
     parameter:
@@ -20,25 +23,26 @@ def models(p, type=-1, a=0.5):
 
     returns: a concentration matrix
     '''
-    n_models = 2 # number of models
+    n_models = 4 # number of models
 
     # model -1 (random model)
     if type==-1:
         type = np.random.randint(n_models)
 
+    M = np.zeros(shape=(p,p))
+
     # model 0
     if type==0:
-        M = np.zeros(shape=(p,p))
         for i in range(p):
-            for j in range(p):
-                M[i,j] = a ** abs(i-j)
-        return M
+            for j in range(i, p):
+                M[j,i] = M[i,j] = a ** abs(i-j)
 
     # model 1
-    if type==1:
+    elif type==1:
         for i in range(p):
-            for j in range(p):
+            for j in range(i,p):
                 l = abs(i-j)
+                m = 0
                 if l==0:
                     m = 1
                 elif l==1:
@@ -47,13 +51,26 @@ def models(p, type=-1, a=0.5):
                     m = 0.2
                 elif l==4:
                     m = 0.1
-                else:
-                    m = 0
-                M[i,j] = m
+                M[j,i] = M[i,j] = m
 
     # model 2
-    if type==2:
-        pass
+    elif type==2:
+        for i in range(p):
+            for j in range(i,p):
+                if i==j:
+                    M[i,j]=1
+                else:
+                    M[j,i] = M[i,j] = np.random.choice([0, 0.5], p=[0.9, 0.1])
+    
+    elif type==3:
+        for i in range(p):
+            for j in range(i,p):
+                if i==j:
+                    M[i,j]=1
+                else:
+                    M[j,i] = M[i,j] = np.random.choice([0, 0.5], p=[0.5, 0.5])
+    
+    return M
 
 def combine(submatrices_list):
     '''
@@ -77,9 +94,11 @@ def divide(k, low, high=None):
     split.sort()
     return split
 
-def generate_in_cov(P, K, S, equal_split=False):
+def generate_in_cov(P, K, S, equal_split=False, model=-1):
     '''
-    generates inverse covariance matrix with PxP dimension, K tasks and S subsets of features. if equal_split=True, the subsets are equally divided.
+    generates inverse covariance matrix with PxP dimension, K tasks and S subsets of features.
+    if equal_split=True, the subsets are equally divided.
+    parameter model: -1=random 0,1,2,...=models.type
     '''
 
     if equal_split == True:
@@ -93,7 +112,8 @@ def generate_in_cov(P, K, S, equal_split=False):
         split = divide(S, low=1, high=P)
         split.insert(0, 0)
         split.append(P) # modify the split list to fit the iteration
-    #print(split)
+    
+#    print(split)
     
     # generate K tasks
     results = []
@@ -107,12 +127,12 @@ def generate_in_cov(P, K, S, equal_split=False):
         final_split.extend(split)
         final_split = np.array(final_split)
         final_split.sort()
-        #print(final_split)
+#        print(final_split)
 
         # generate sub-blocks
         sub_blocks = []
         for i in range(len(final_split)-1):
-            sub_blocks.append(models(final_split[i+1]-final_split[i]))
+            sub_blocks.append(models(final_split[i+1]-final_split[i], type=model))
         
         # combine and output
         results.append(combine(sub_blocks))
@@ -127,16 +147,18 @@ def generate_data(Omega, n):
     p = len(Sigma)
     return np.random.multivariate_normal(np.zeros(p), Sigma, size=n)
 
+def generate(P, K, S, N):
+    results = generate_in_cov(P, K, S, model=2)
+    for i in range(len(results)):
+        np.savetxt('resource/matrix_producer/inverse/inverse_{}vars_{}samples_{}S_task{}.csv'.format(P, N, S, i+1), results[i], delimiter=',')
+#        plt.imshow(results[i], cmap='gray')
+#        plt.show()
+        np.savetxt('resource/matrix_producer/data/data_{}vars_{}samples_{}S_task{}.csv'.format(P, N, S, i+1), generate_data(results[i], N), delimiter=',')
 
 def main():
     P, K, S, N = hyper_para()
-    results = generate_in_cov(P, K, S)
-    for i in range(len(results)):
-        np.savetxt('conc{}.csv'.format(i), results[i], delimiter=',')
-#        plt.imshow(results[i], cmap='gray')
-#        plt.show()
-        np.savetxt('data{}.csv'.format(i), generate_data(results[i], N), delimiter=',')
-
+    generate(P, K, S, N)
+    
 
 if __name__ == '__main__':
     main()
