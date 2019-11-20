@@ -13,11 +13,11 @@ def hyper_para():
     N = int(input('Input the number of samples for each task N: '))
     is_equal = False
     while True:
-        flag = input('Split equally?(y/n, False for default): ')
+        flag = input(r'Split equally?(y/n, False for default): ')
         if flag == 'y':
             is_equal = True
             break
-        elif flag == 'n' or is_equal == '':
+        elif flag == 'n' or flag == '':
             break
 
     return P, K, S, N, is_equal
