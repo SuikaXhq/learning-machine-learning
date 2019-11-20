@@ -5,13 +5,22 @@ import scipy.linalg
 
 def hyper_para():
     '''
-    returns P, K, S, N
+    returns P, K, S, N, is_equal
     '''
     P = int(input('Input the dimension of feature P: '))
     K = int(input('Input the number of task K: '))
     S = int(input('Input the number of subsets S: '))
     N = int(input('Input the number of samples for each task N: '))
-    return P, K, S, N
+    is_equal = False
+    while True:
+        flag = input('Split equally?(y/n, False for default): ')
+        if flag == 'y':
+            is_equal = True
+            break
+        elif flag == 'n' or is_equal == '':
+            break
+
+    return P, K, S, N, is_equal
 
 def models(p, type=-1, a=0.7):
     '''
@@ -60,15 +69,16 @@ def models(p, type=-1, a=0.7):
                 if i==j:
                     M[i,j]=1
                 else:
-                    M[j,i] = M[i,j] = np.random.choice([0, 0.5], p=[0.9, 0.1])
+                    M[j,i] = M[i,j] = np.random.choice([0, 0.1], p=[0.9, 0.1])
     
+    # model 3
     elif type==3:
         for i in range(p):
             for j in range(i,p):
                 if i==j:
                     M[i,j]=1
                 else:
-                    M[j,i] = M[i,j] = np.random.choice([0, 0.5], p=[0.5, 0.5])
+                    M[j,i] = M[i,j] = np.random.choice([0, 0.1], p=[0.5, 0.5])
     
     return M
 
@@ -147,8 +157,11 @@ def generate_data(Omega, n):
     p = len(Sigma)
     return np.random.multivariate_normal(np.zeros(p), Sigma, size=n)
 
-def generate(P, K, S, N):
-    results = generate_in_cov(P, K, S, model=2)
+def generate(P, K, S, N, equal_split=False):
+    '''
+    generate both inverse covariance matrix and corresponding data, and save as *.csv
+    '''
+    results = generate_in_cov(P, K, S, equal_split=equal_split)
     for i in range(len(results)):
         np.savetxt('resource/matrix_producer/inverse/inverse_{}vars_{}samples_{}S_task{}.csv'.format(P, N, S, i+1), results[i], delimiter=',')
 #        plt.imshow(results[i], cmap='gray')
@@ -156,8 +169,8 @@ def generate(P, K, S, N):
         np.savetxt('resource/matrix_producer/data/data_{}vars_{}samples_{}S_task{}.csv'.format(P, N, S, i+1), generate_data(results[i], N), delimiter=',')
 
 def main():
-    P, K, S, N = hyper_para()
-    generate(P, K, S, N)
+    P, K, S, N, is_equal = hyper_para()
+    generate(P, K, S, N, is_equal)
     
 
 if __name__ == '__main__':
