@@ -5,3 +5,6 @@
 
 # IPython
 .ipynb_checkpoints/
+
+# Folders
+matrix_producer/
