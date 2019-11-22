@@ -38,7 +38,7 @@ def models(p, type=-1, a=0.7):
     # model -1 (random model)
     if type==-1:
         type = np.random.randint(n_models)
-        print('model {} used, '.format(type+1), end='')
+#        print('model {} used, '.format(type+1), end='')
 
     M = np.zeros(shape=(p,p))
 
@@ -150,7 +150,7 @@ def generate_in_cov(P, K, S, equal_split=False, model=-1):
         sub_blocks = []
         for i in range(len(final_split)-1):
             sub_blocks.append(models(final_split[i+1]-final_split[i], type=model))
-            print()
+        print()
         
         # combine and output
         results.append(combine(sub_blocks))
@@ -170,6 +170,7 @@ def generate(P, K, S, N, equal_split=False, folder='default'):
     '''
     generate both inverse covariance matrix and corresponding data, and save as *.csv
     '''
+    print('-'*100)
     print('P={}, K={}, S={}, N={}, {}'.format(P, K, S, N, 'equally split' if equal_split else 'randomly split'))
     results = generate_in_cov(P, K, S, equal_split=equal_split)
     for i in range(len(results)):
@@ -183,7 +184,7 @@ def generate(P, K, S, N, equal_split=False, folder='default'):
         data_path = 'resource/matrix_producer/{}/data/data_{}vars_{}samples_{}S_task{}.csv'.format(folder, P, N, S, i+1)
         np.savetxt(data_path, generate_data(results[i], N), delimiter=',')
         print('saved in {}.'.format(data_path))
-        
+    print('-'*100)
 
 
 def main():
@@ -192,4 +193,8 @@ def main():
     
 
 if __name__ == '__main__':
-    main()
+#    main()
+#    for i in range(1,11):
+#        generate(1000, 4, 20, i*100, equal_split=True, folder='high_dim')
+    for i in range(5,21,5):
+        generate(1000, 4, i, 500, equal_split=True, folder='multi_block')
