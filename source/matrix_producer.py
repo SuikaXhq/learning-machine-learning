@@ -11,6 +11,7 @@ def hyper_para():
     K = int(input('Input the number of task K: '))
     S = int(input('Input the number of subsets S: '))
     N = int(input('Input the number of samples for each task N: '))
+    folder = input('Input the folder name you wish to save: ')
     is_equal = False
     while True:
         flag = input(r'Split equally?(y/n, False for default): ')
@@ -20,7 +21,7 @@ def hyper_para():
         elif flag == 'n' or flag == '':
             break
 
-    return P, K, S, N, is_equal
+    return P, K, S, N, is_equal, folder
 
 def models(p, type=-1, a=0.7):
     '''
@@ -37,6 +38,7 @@ def models(p, type=-1, a=0.7):
     # model -1 (random model)
     if type==-1:
         type = np.random.randint(n_models)
+        print('model {} used, '.format(type+1), end='')
 
     M = np.zeros(shape=(p,p))
 
@@ -113,21 +115,26 @@ def generate_in_cov(P, K, S, equal_split=False, model=-1):
 
     if equal_split == True:
         # equally spliting
+        print('Equally split:')
         split = list(range(0, P+1, P//S))
         split.pop()
         split.append(P)
+        print('split:', split)
         
     else:
         # inequally spliting
+        print('Randomly split:')
         split = divide(S, low=1, high=P)
         split.insert(0, 0)
         split.append(P) # modify the split list to fit the iteration
+        print('split:', split)
     
 #    print(split)
     
     # generate K tasks
     results = []
     for i in range(K):
+        print('generating task{}'.format(i+1))
         sub_split_n = [random.randint( 1, (split[i+1]-split[i])//2 if split[i+1]-split[i]>1 else 1 ) for i in range(S)]
         #print(sub_split_n)
         sub_split = []
@@ -137,15 +144,17 @@ def generate_in_cov(P, K, S, equal_split=False, model=-1):
         final_split.extend(split)
         final_split = np.array(final_split)
         final_split.sort()
-#        print(final_split)
+        print('the unique split is', final_split)
 
         # generate sub-blocks
         sub_blocks = []
         for i in range(len(final_split)-1):
             sub_blocks.append(models(final_split[i+1]-final_split[i], type=model))
+            print()
         
         # combine and output
         results.append(combine(sub_blocks))
+        print('finished.')
     
     return np.array(results)
 
@@ -157,20 +166,29 @@ def generate_data(Omega, n):
     p = len(Sigma)
     return np.random.multivariate_normal(np.zeros(p), Sigma, size=n)
 
-def generate(P, K, S, N, equal_split=False):
+def generate(P, K, S, N, equal_split=False, folder='default'):
     '''
     generate both inverse covariance matrix and corresponding data, and save as *.csv
     '''
+    print('P={}, K={}, S={}, N={}, {}'.format(P, K, S, N, 'equally split' if equal_split else 'randomly split'))
     results = generate_in_cov(P, K, S, equal_split=equal_split)
     for i in range(len(results)):
-        np.savetxt('resource/matrix_producer/inverse/inverse_{}vars_{}samples_{}S_task{}.csv'.format(P, N, S, i+1), results[i], delimiter=',')
+        print('saving precision matrix of task{}...'.format(i+1))
+        pm_path = 'resource/matrix_producer/{}/inverse/inverse_{}vars_{}samples_{}S_task{}.csv'.format(folder, P, N, S, i+1)
+        np.savetxt(pm_path, results[i], delimiter=',')
+        print('saved in {}.'.format(pm_path))
 #        plt.imshow(results[i], cmap='gray')
 #        plt.show()
-        np.savetxt('resource/matrix_producer/data/data_{}vars_{}samples_{}S_task{}.csv'.format(P, N, S, i+1), generate_data(results[i], N), delimiter=',')
+        print('saving data of task{}...'.format(i+1))
+        data_path = 'resource/matrix_producer/{}/data/data_{}vars_{}samples_{}S_task{}.csv'.format(folder, P, N, S, i+1)
+        np.savetxt(data_path, generate_data(results[i], N), delimiter=',')
+        print('saved in {}.'.format(data_path))
+        
+
 
 def main():
-    P, K, S, N, is_equal = hyper_para()
-    generate(P, K, S, N, is_equal)
+    P, K, S, N, is_equal, folder = hyper_para()
+    generate(P, K, S, N, is_equal, folder)
     
 
 if __name__ == '__main__':
