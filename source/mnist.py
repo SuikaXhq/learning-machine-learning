@@ -1,28 +1,17 @@
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
-import input_data
+import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
 sess = tf.InteractiveSession()
-
 x = tf.placeholder("float", shape=[None, 784])
 y_ = tf.placeholder("float", shape=[None, 10])
-
+'''
 W = tf.Variable(tf.zeros([784,10]))
 b = tf.Variable(tf.zeros([10]))
 sess.run(tf.initialize_all_variables())
 
 y = tf.nn.softmax(tf.matmul(x,W) + b)
-cross_entropy = -tf.reduce_sum(y_*tf.log(y))
-train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
-for i in range(1000):
-    batch = mnist.train.next_batch(50)
-    train_step.run(feed_dict={x: batch[0], y_: batch[1]})
-
-correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-print(accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
-
+'''
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
     return tf.Variable(initial)
@@ -53,6 +42,7 @@ W_fc1 = weight_variable([7 * 7 * 64, 1024])
 b_fc1 = bias_variable([1024])
 h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
+print(h_fc1.shape)
 
 keep_prob = tf.placeholder("float")
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
