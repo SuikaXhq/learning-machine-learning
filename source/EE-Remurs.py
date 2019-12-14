@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 def hyper_para():
     '''TODO: path
@@ -36,7 +37,7 @@ class EE_Remurs():
             W_i = (W_hat/ita[i]).reshape((self.input_shape[i-1], -1))
             U, S, V = np.linalg.svd(W_i)
             S = self.thresholding(S, ratio*lam/self.N)
-            print(S)
+            #print(S)
             Sm = np.zeros(W_i.shape)
             np.fill_diagonal(Sm, S)
             self.Ws.append((U @ Sm @ V).reshape(self.input_shape))
@@ -46,7 +47,9 @@ class EE_Remurs():
         return self.Ws, self.W
 
     def test(self, X_test, y_test):
-        loss = np.linalg.norm(X_test @ self.W - y_test)
+        X_test_ = X_test.reshape((-1, np.prod(self.input_shape)))
+        W = self.W.reshape((-1))
+        loss = np.linalg.norm(X_test_ @ W - y_test)/X_test.shape[0]
         return loss
     
     def thresholding(self, W, t):
@@ -106,20 +109,25 @@ def main():
     '''TODO: new or load choices
     '''
     shape = hyper_para()
+    P = np.prod(shape)
     generator = Generator(shape)
     Ws_origin, W = generator.generate_weight()
 #    generator.save(path)
 #    print(W.shape)
-    X_train, y_train = generator.generate_data(10000)
-    X_test, y_test = generator.generate_data(1000)
+    X_train, y_train = generator.generate_data(int(0.8*P))
+    X_test, y_test = generator.generate_data(int(0.5*P))
     model = EE_Remurs(input_shape=shape)
+    start = time.time()
     model.train(X_train, y_train)
+    end = time.time()
     Ws_predict, W_predict = model.get_weights()
     #print(W)
     #print(W_predict)
-    print(Ws_predict[0])
-    print(Ws_origin[0])
-    print((W_predict-W)/W)
+    #print(Ws_predict[0])
+    #print(Ws_origin[0])
+    #print((W_predict-W)/W)
+    print(model.test(X_test, y_test))
+    print(end-start, 'seconds')
 
 if __name__ == '__main__':
     main()
