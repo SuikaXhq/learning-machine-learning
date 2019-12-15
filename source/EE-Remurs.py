@@ -1,9 +1,9 @@
 import numpy as np
 import time
+import os
+import re
 
 def hyper_para():
-    '''TODO: path
-    '''
     # ratio = float(input('Input tau/gamma ratio (float): '))
     # lam = float(input('Input lambda:'))
     shape = input('Input the input shape(split by space):')
@@ -18,7 +18,7 @@ class EE_Remurs():
     def __call__(self, X):
         return self.W * X
     
-    def train(self, X_train, y_train, ratio=8.0, lam=2, epsl=3.0, ita=None):
+    def train(self, X_train, y_train, ratio=7.0, lam=3.0, epsl=1.0, ita=None):
         self.ratio = ratio
         self.lam = lam
         self.X_train = X_train
@@ -35,10 +35,11 @@ class EE_Remurs():
         self.Ws.append(self.thresholding(W_hat/ita[0], lam))
         for i in range(1, self.N+1):
             W_i = (W_hat/ita[i]).reshape((self.input_shape[i-1], -1))
-            U, S, V = np.linalg.svd(W_i)
+            U, S, V = np.linalg.svd(W_i, full_matrices=False)
             S = self.thresholding(S, ratio*lam/self.N)
             #print(S)
-            Sm = np.zeros(W_i.shape)
+            min_m_n = np.min(W_i.shape)
+            Sm = np.zeros((min_m_n, min_m_n))
             np.fill_diagonal(Sm, S)
             self.Ws.append((U @ Sm @ V).reshape(self.input_shape))
         self.W = np.average(self.Ws, axis=0)
@@ -98,36 +99,100 @@ class Generator():
     def test(self, X_test, y_test):
         pass
 
-    def save(self, path):
+    def save(self, M, path):
         pass
 
     def load(self, path):
         pass
-        
+
+class Best():
+    pass
 
 def main():
     '''TODO: new or load choices
     '''
-    shape = hyper_para()
-    P = np.prod(shape)
-    generator = Generator(shape)
-    Ws_origin, W = generator.generate_weight()
-#    generator.save(path)
-#    print(W.shape)
-    X_train, y_train = generator.generate_data(int(0.8*P))
-    X_test, y_test = generator.generate_data(int(0.5*P))
-    model = EE_Remurs(input_shape=shape)
-    start = time.time()
-    model.train(X_train, y_train)
-    end = time.time()
-    Ws_predict, W_predict = model.get_weights()
-    #print(W)
-    #print(W_predict)
-    #print(Ws_predict[0])
-    #print(Ws_origin[0])
-    #print((W_predict-W)/W)
-    print(model.test(X_test, y_test))
-    print(end-start, 'seconds')
+    flag = input('g: generate data, r: run model ')
+    if flag =='g':
+        shape = hyper_para()
+        shape_ = [str(s) for s in shape]
+        P = np.prod(shape)
+        generator = Generator(shape)
+        Ws_origin, W = generator.generate_weight()
+        X_train, y_train = generator.generate_data(int(0.05*P))
+        X_test, y_test = generator.generate_data(int(0.01*P))
+        folder = 'x'.join(shape_)+'/'
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        path_Ws = 'weights_'+'x'.join(shape_)+'_{}N.csv'.format(len(shape))
+        path_W = 'weight_'+'x'.join(shape_)+'_{}N.csv'.format(len(shape))
+        path_X_train = 'x_train_'+'x'.join(shape_)+'_{}N_{}samples.csv'.format(len(shape), int(0.05*P))
+        path_y_train = 'y_train_'+'x'.join(shape_)+'_{}N_{}samples.csv'.format(len(shape), int(0.05*P))
+        path_X_test = 'x_test_'+'x'.join(shape_)+'_{}N_{}samples.csv'.format(len(shape), int(0.01*P))
+        path_y_test = 'y_test_'+'x'.join(shape_)+'_{}N_{}samples.csv'.format(len(shape), int(0.01*P))
+        np.savetxt(folder+path_Ws, np.array(Ws_origin).reshape((len(shape)+1, -1)))
+        np.savetxt(folder+path_W, W.reshape(-1))
+        np.savetxt(folder+path_X_train, X_train.reshape((int(0.05*P),-1)))
+        np.savetxt(folder+path_y_train, y_train)
+        np.savetxt(folder+path_X_test, X_test.reshape((int(0.01*P),-1)))
+        np.savetxt(folder+path_y_test, y_test)
+
+    elif flag=='r':
+        
+        datafolder = input('Data Folder(do not add \'/\'):')
+        print('loading files...')
+        shape = [int(s) for s in datafolder.split('x')]
+        for root, dirs, files in os.walk(datafolder+'/'):
+            for file in files:
+                if file.startswith('x_train'):
+                    X_train = np.loadtxt(datafolder+'/'+file).reshape([-1,]+shape)
+                elif file.startswith('y_train'):
+                    y_train = np.loadtxt(datafolder+'/'+file)
+                elif file.startswith('x_test'):
+                    X_test = np.loadtxt(datafolder+'/'+file).reshape([-1,]+shape)
+                elif file.startswith('y_test'):
+                    y_test = np.loadtxt(datafolder+'/'+file)
+
+        
+        model = EE_Remurs(input_shape=shape)
+        best = Best()
+        best.mse = 1e+5
+
+        
+        # cross-validation (1 fold)
+        for ratio in range(1, 10):
+            for lam in np.arange(3, 7, 0.5):
+                print('ratio: %d, lam: %f'%(ratio, lam))
+                print('Training...')
+                start = time.time()
+                model.train(X_train, y_train, ratio=ratio, lam=lam)
+                end = time.time()
+                timecost = end-start
+                mse = model.test(X_test, y_test)
+                print('mse: %.4f'%mse)
+                print('run time: %.4f'%timecost)
+                print('-'*100)
+                if mse<best.mse:
+                    best.mse = mse
+                    best.time = timecost
+                    best.ratio = ratio
+                    best.lam = lam
+                
+        print('='*100)
+        print('The best parameters are:')
+        print('ratio: %d, lam: %f'%(best.ratio, best.lam))
+        print('mse: %.4f'%best.mse)
+        print('time: %.4f'%best.time)
+
+
+        
+        #Ws_predict, W_predict = model.get_weights()
+        #print(W)
+        #print(W_predict)
+        #print(Ws_predict[0])
+        #print(Ws_origin[0])
+        #print((W_predict-W)/W)
+        #print('mse =', model.test(X_test, y_test))
+        #print('run time:', end-start, 'seconds')
 
 if __name__ == '__main__':
     main()
