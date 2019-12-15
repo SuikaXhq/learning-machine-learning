@@ -18,23 +18,39 @@ class EE_Remurs():
     def __call__(self, X):
         return self.W * X
     
-    def train(self, X_train, y_train, ratio=7.0, lam=3.0, epsl=1.0, ita=None):
+    def train(self, X_train, y_train, ratio=1.0, lam=0.5, epsl=1.0, ita=None):
+        start = time.time()
         self.ratio = ratio
         self.lam = lam
-        self.X_train = X_train
+        #self.X_train = X_train
         self.epsl = epsl
         X_flat = X_train.reshape((X_train.shape[0], -1))
         P_flat = X_flat.shape[1]
-        W_hat = np.linalg.inv(X_flat.T @ X_flat + epsl*np.identity(P_flat)) @ X_flat.T @ y_train
+        #toc0 = time.time() - start
+        #print('toc0:',toc0)
+        q = X_flat.T @ y_train
+        #toc0 = time.time() - start
+        #print('toc_1:',toc0)
+        c = X_flat.T @ X_flat
+        #toc0 = time.time() - start
+        #print('toc_2:',toc0)
+        
+        s = np.linalg.inv(c + epsl*np.identity(P_flat))
+        #toc0 = time.time() - start
+        #print('toc_3:',toc0)
+        W_hat = s @ q
+        
+        
         W_hat = W_hat.reshape(self.input_shape)
         if not ita:
             ita = [1.0/(self.N+1) for _ in range(self.N+1)]
 
+        
         # training
         self.Ws = []
-        self.Ws.append(self.thresholding(W_hat/ita[0], lam))
+        self.Ws.append(self.thresholding(W_hat*ita[0], lam))
         for i in range(1, self.N+1):
-            W_i = (W_hat/ita[i]).reshape((self.input_shape[i-1], -1))
+            W_i = (W_hat*ita[i]).reshape((self.input_shape[i-1], -1))
             U, S, V = np.linalg.svd(W_i, full_matrices=False)
             S = self.thresholding(S, ratio*lam/self.N)
             #print(S)
@@ -42,6 +58,8 @@ class EE_Remurs():
             Sm = np.zeros((min_m_n, min_m_n))
             np.fill_diagonal(Sm, S)
             self.Ws.append((U @ Sm @ V).reshape(self.input_shape))
+            #toc = time.time() - start
+            #print('toc%d'%i,toc)
         self.W = np.average(self.Ws, axis=0)
 
     def get_weights(self):
@@ -157,31 +175,42 @@ def main():
         best = Best()
         best.mse = 1e+5
 
+        flag = input('cross-validation?(y/n)')
+        if flag=='y':
+            # cross-validation (1 fold)
+            for ratio in [0.01, 0.05, 0.1, 0.5, 1]:
+                for lam in np.arange(0.5, 4.5, 0.5):
+                    print('ratio: %d, lam: %f'%(ratio, lam))
+                    print('Training...')
+                    start = time.time()
+                    model.train(X_train, y_train, ratio=ratio, lam=lam)
+                    end = time.time()
+                    timecost = end-start
+                    mse = model.test(X_test, y_test)
+                    print('mse: %.4f'%mse)
+                    print('run time: %.4f'%timecost)
+                    print('-'*100)
+                    if mse<best.mse:
+                        best.mse = mse
+                        best.time = timecost
+                        best.ratio = ratio
+                        best.lam = lam
+                    
+            print('='*100)
+            print('The best parameters are:')
+            print('ratio: %d, lam: %f'%(best.ratio, best.lam))
+            print('mse: %.4f'%best.mse)
+            print('time: %.4f'%best.time)
         
-        # cross-validation (1 fold)
-        for ratio in range(1, 10):
-            for lam in np.arange(3, 7, 0.5):
-                print('ratio: %d, lam: %f'%(ratio, lam))
-                print('Training...')
-                start = time.time()
-                model.train(X_train, y_train, ratio=ratio, lam=lam)
-                end = time.time()
-                timecost = end-start
-                mse = model.test(X_test, y_test)
-                print('mse: %.4f'%mse)
-                print('run time: %.4f'%timecost)
-                print('-'*100)
-                if mse<best.mse:
-                    best.mse = mse
-                    best.time = timecost
-                    best.ratio = ratio
-                    best.lam = lam
-                
-        print('='*100)
-        print('The best parameters are:')
-        print('ratio: %d, lam: %f'%(best.ratio, best.lam))
-        print('mse: %.4f'%best.mse)
-        print('time: %.4f'%best.time)
+        elif flag=='n':
+            print('Training...')
+            start = time.time()
+            model.train(X_train, y_train)
+            end = time.time()
+            timecost = end-start
+            mse = model.test(X_test, y_test)
+            print('mse: %.4f'%mse)
+            print('time: %.4f'%timecost)
 
 
         
