@@ -47,5 +47,5 @@ for i=1:M
 end
 
 %% Save
-save(sprintf('Data_full_M%d_S%d_n%d_p%d_q%d.mat', M, S, n, p, q), 'X','Z','Y','beta_0','alpha_0','theta_0','subgroup');
+%save(sprintf('Data_full_M%d_S%d_n%d_p%d_q%d.mat', M, S, n, p, q), 'X','Z','Y','beta_0','alpha_0','theta_0','subgroup');
 end

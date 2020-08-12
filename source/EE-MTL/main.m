@@ -51,7 +51,7 @@ for j = 1:100
 end
 
 NMI = mean(NMI_full);
-timecost = mean(timecost_full);
+timecost = median(timecost_full);
 perfect_recover = mean(perfect_full);
 S_max = max(S_est_full);
 S_min = min(S_est_full);

@@ -19,15 +19,18 @@ end
 fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
 fprintf('Calculating W_i..\n');
 W = cell(1,M);
+lme = cell(1,M);
+psi = cell(1,M);
+sigma = zeros(1,M);
 if nargin == 5
     for i=1:M
         W{i} = sigma^(-2)*(eye(n(i)) - sigma^(-2)* Z{i}*(1/psi*eye(q) + sigma^(-2)*Z{i}'*Z{i})*Z{i}');
     end
 else
-    for i=1:M
-        lme = fitlmematrix(X{i}, Y{i}, Z{i}, [], 'CovariancePattern', 'Isotropic','FitMethod','REML');
-        [psi, sigma] = covarianceParameters(lme);
-        W{i} = sigma^(-2)*(eye(n(i)) - sigma^(-2)* Z{i}*(psi{1}\eye(q) + sigma^(-2)*Z{i}'*Z{i})*Z{i}');
+    parfor i=1:M
+        lme{i} = fitlmematrix(X{i}, Y{i}, Z{i}, [], 'CovariancePattern', 'Isotropic','FitMethod','REML');
+        [psi{i}, sigma(i)] = covarianceParameters(lme{i});
+        W{i} = sigma(i)^(-2)*(eye(n(i)) - sigma(i)^(-2)* Z{i}*(psi{i}{1}\eye(q) + sigma(i)^(-2)*Z{i}'*Z{i})*Z{i}');
     end
 end
 fprintf('Initialization done.\n');
@@ -68,7 +71,7 @@ fprintf('Step 3 done. Timecost: %.6fs\n',timecost(3));
 
 %% BIC tuning
 fprintf('Start tuning lambda via BIC.\n');
-max_lambda = ceil(1.2*max(delta_tilde,[],'all'));
+max_lambda = ceil(1.2*max(delta_tilde(:)));
 fprintf('Max lambda: %d\n', max_lambda);
 lambda_step = 0.05*max_lambda;
 timecost_full = zeros(3,21);
