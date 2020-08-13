@@ -6,7 +6,7 @@ n = 1024*(2-mod(case_number,2));
 switch case_number
     case 1
         M = 50;
-        S = 2;
+        S = 3;
         p = 5;
         q = 3;
     case 2
@@ -20,13 +20,13 @@ switch case_number
         p = 20;
         q = 12;
     case 4
-        M = 150;
-        S = 7;
+        M = 100;
+        S = 5;
         p = 20;
         q = 12;
     case 5
-        M = 100;
-        S = 5;
+        M = 150;
+        S = 7;
         p = 200;
         q = 120;
     case 6
