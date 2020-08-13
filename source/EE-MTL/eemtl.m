@@ -19,18 +19,19 @@ end
 fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
 fprintf('Calculating W_i..\n');
 W = cell(1,M);
-lme = cell(1,M);
-psi = cell(1,M);
-sigma = zeros(1,M);
 if nargin == 5
     for i=1:M
-        W{i} = sigma^(-2)*(eye(n(i)) - sigma^(-2)* Z{i}*(1/psi*eye(q) + sigma^(-2)*Z{i}'*Z{i})*Z{i}');
+%         W{i} = sigma^(-2)*(eye(n(i)) - sigma^(-2)* Z{i}*(1/psi*eye(q) + sigma^(-2)*Z{i}'*Z{i})*Z{i}');
+        W{i} = (sigma^2*eye(n(i))+psi^2*Z{i}*Z{i}')\eye(n(i));
     end
 else
+    lme = cell(1,M);
+    psi = cell(1,M);
+    sigma = zeros(1,M);
     parfor i=1:M
         lme{i} = fitlmematrix(X{i}, Y{i}, Z{i}, [], 'CovariancePattern', 'Isotropic','FitMethod','REML');
         [psi{i}, sigma(i)] = covarianceParameters(lme{i});
-        W{i} = sigma(i)^(-2)*(eye(n(i)) - sigma(i)^(-2)* Z{i}*(psi{i}{1}\eye(q) + sigma(i)^(-2)*Z{i}'*Z{i})*Z{i}');
+        W{i} = (sigma(i)^2*eye(n(i))+Z{i}*psi{i}{1}*Z{i}')\eye(n(i));
     end
 end
 fprintf('Initialization done.\n');
@@ -52,7 +53,15 @@ fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 %% Step 2: Calculate tilde parameters
 fprintf('Step 2: Calculate tilde parameters.\n');
 tic;
-beta_tilde = 1/M*sum(beta_check,1);
+LHS = 0;
+RHS = 0;
+for i=1:M
+    K_i = X{i}'*W{i}*X{i};
+    LHS = LHS + K_i;
+    RHS = RHS + K_i * beta_check(i,:)';
+end
+beta_tilde = (LHS \ RHS)';
+% beta_tilde = 1/M*sum(beta_check, 1);
 theta_tilde = theta_check;
 timecost(2) = toc;
 fprintf('Step 2 done. Timecost: %.6fs\n',timecost(2));
