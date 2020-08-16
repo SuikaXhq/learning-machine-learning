@@ -122,6 +122,7 @@ for k=1:best_K
 end
 BIC = min_BIC;
 fprintf('Best K: %d\n', best_K);
-fprintf('Total time cost: %.6fs\n', sum(timecost));
 timecost = sum(timecost(2:6));
+fprintf('Total time cost: %.6fs\n', timecost);
+
 end
