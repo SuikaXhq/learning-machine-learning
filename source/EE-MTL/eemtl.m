@@ -141,8 +141,8 @@ fprintf('Step 6: Calculate alpha_s and theta_estimate.\nAverage time cost: %.6fs
 fprintf('All steps done. Returning results.\n');
 fprintf('Best BIC: %.4f\n', min_BIC);
 fprintf('Best lambda: %.3f\n', lambda_list(index_min_BIC));
-fprintf('Total time cost: %.6fs\n', sum(timecost));
-timecost = sum(timecost);
+fprintf('Total time cost: %.6fs\n', sum(timecost(2:6)));
+timecost = sum(timecost(2:6));
 
 %% Sub-functions
 function subgroup_new = subgroup_estimate(subgroup_old, i, A_raw)
