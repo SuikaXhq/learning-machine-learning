@@ -93,7 +93,7 @@ for K=1:10
         old_subgroup = subgroup;
         for m=1:M
             for k=1:K
-                diff = centroids-theta_tilde(m,:);
+                diff = centroids-theta_tilde(m*ones(1,K),:);
                 dist(k) = norm(diff(k,:));
             end
             [~, subgroup(m)] = min(dist);
