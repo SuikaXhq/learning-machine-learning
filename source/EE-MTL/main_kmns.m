@@ -66,6 +66,8 @@ for j = 1:100
     RMSE_theta_full(j) = rmse(theta_0{j}, theta_est{j});
 end
 
+NMI_full = NMI_full(~isnan(NMI_full));
+NaNs = sum(isnan(NMI_full));
 NMI = mean(NMI_full);
 timecost = median(timecost_full);
 perfect_recover = mean(perfect_full);
@@ -77,6 +79,6 @@ RMSE_beta = mean(RMSE_beta_full);
 RMSE_theta = mean(RMSE_theta_full);
 
 file = fopen(sprintf('Report_kmns_case%d.txt',case_number),'w');
-fprintf('-------------------------------\nReport:\nCase: %d\n\nTime cost: %.6f\nS_est(Mean, Median, Min, Max): %d,%d,%d,%d\nNMI: %.4f\nPerfect Recover: %.2f\nRMSE(beta): %.4f\nRMSE(theta): %.4f\n-------------------------------\n', case_number,timecost,S_mean,S_median,S_min,S_max,NMI,perfect_recover,RMSE_beta,RMSE_theta);
-fprintf(file, '-------------------------------\nReport:\nCase: %d\n\nTime cost: %.6f\nS_est(Mean, Median, Min, Max): %d,%d,%d,%d\nNMI: %.4f\nPerfect Recover: %.2f\nRMSE(beta): %.4f\nRMSE(theta): %.4f\n-------------------------------\n', case_number,timecost,S_mean,S_median,S_min,S_max,NMI,perfect_recover,RMSE_beta,RMSE_theta);
+fprintf('-------------------------------\nReport:\nCase: %d\n\nTime cost: %.6f\nS_est(Mean, Median, Min, Max): %d,%d,%d,%d\nNMI: %.4f\nPerfect Recover: %.2f\nRMSE(beta): %.4f\nRMSE(theta): %.4f\n-------------------------------\nNMI NaNs: %d\n-------------------------------\n', case_number,timecost,S_mean,S_median,S_min,S_max,NMI,perfect_recover,RMSE_beta,RMSE_theta,NaNs);
+fprintf(file, '-------------------------------\nReport:\nCase: %d\n\nTime cost: %.6f\nS_est(Mean, Median, Min, Max): %d,%d,%d,%d\nNMI: %.4f\nPerfect Recover: %.2f\nRMSE(beta): %.4f\nRMSE(theta): %.4f\n-------------------------------\nNMI NaNs: %d\n-------------------------------\n', case_number,timecost,S_mean,S_median,S_min,S_max,NMI,perfect_recover,RMSE_beta,RMSE_theta,NaNs);
 fclose(file);
