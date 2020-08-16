@@ -74,7 +74,7 @@ for K=1:10
     dist = zeros(1,K);
     for m=1:M
         for k=1:K
-            diff = centroids-theta_tilde(m,:);
+            diff = centroids-theta_tilde(m*ones(1,K),:);
             dist(k) = norm(diff(k,:));
         end
         [~, subgroup(m)] = min(dist);
