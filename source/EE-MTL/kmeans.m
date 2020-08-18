@@ -117,9 +117,13 @@ end
 beta = beta_tilde;
 index = 1:M;
 subgroup = cell(1,best_K);
+
+tic;
 for k=1:best_K
     subgroup{k} = index(subgroup_est==k);
 end
+timecost(4) = toc;
+
 BIC = min_BIC;
 fprintf('Best K: %d\n', best_K);
 timecost = sum(timecost(2:6));

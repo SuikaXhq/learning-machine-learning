@@ -30,12 +30,16 @@ NMI = 2*I/(H+H_est);
 is_perfect = true;
 if S == S_est
     for s=1:S
-        if M_s(s) == M_s_est(s)
-            if sum(subgroup{s}==subgroup_est{s})~=M_s(s)
-                is_perfect = false;
-                break;
+        flag = false;
+        for s_=1:S
+            if M_s(s) == M_s_est(s_)
+                if sum(subgroup{s}==subgroup_est{s_})==M_s(s)
+                    flag = true;
+                    break;
+                end
             end
-        else
+        end
+        if ~flag
             is_perfect = false;
             break;
         end
