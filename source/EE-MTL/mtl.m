@@ -57,7 +57,7 @@ t = 0;
 for i=1:M
     for j=i+1:M
         t = t+1;
-        B(t*q-q+1:t*q, :) = [zeros(q,q*(i-1)), eye(q), zeros(q,q*(j-i-1)), eye(q), zeros(q,q*(M-j))];
+        B(t*q-q+1:t*q, :) = [zeros(q,q*(i-1)), eye(q), zeros(q,q*(j-i-1)), -eye(q), zeros(q,q*(M-j))];
     end
 end
 B = B';
@@ -80,6 +80,7 @@ for i=1:M
     D = blkdiag(D, Z{i}'*W{i}*X{i});
 end
 
+
 % bigTheta
 Theta_Check = theta_check';
 Theta_Check = Theta_Check(:);
@@ -91,15 +92,24 @@ Beta_Check = Beta_Check(:);
 
 % delta, nu
 delta = B'*bigTheta;
-nu = zeros(q*M*(M-1)/2,1);
 
 t=0;
-max_lambda = 1.1*norm(delta);
+max_lambda = 1.1*norm(delta)/M/(M-1)*2;
 lambda_list = 0:0.05*max_lambda:max_lambda;
 for lambda = lambda_list
 t = t+1;
+fprintf('Lambda: %.4f\n', lambda);
+
+% bigTheta
+bigTheta = Theta_Check;
+% delta, nu
+delta = B'*bigTheta;
+nu = zeros(q*M*(M-1)/2,1);
 tic;
+k = 0;
+converge = true;
 while true
+    k = k+1;
     %% beta
     LHS = 0;
     RHS = 0;
@@ -113,7 +123,7 @@ while true
     %% Theta
     Beta_k = beta_k(:,ones(M,1));
     Beta_k = Beta_k(:);
-    bigTheta = (bigZ'*bigW*bigZ + N*B*B') \ (bigZ'*bigW*bigZ*Theta_Check + D*(Beta_Check-Beta_k) + N*B*(delta - nu));
+    bigTheta = (bigZ'*bigW*bigZ + N*(B*B')) \ (bigZ'*bigW*bigZ*Theta_Check + D*(Beta_Check-Beta_k) + N*B*(delta - nu));
     
     %% delta
     delta = B'*bigTheta + nu;
@@ -126,18 +136,30 @@ while true
     
     %% Convergence confirm
     r = B'*bigTheta - delta;
-    if norm(r) < epsilon
+    %fprintf('||r||^2 = %.10f\n', norm(r)^2);
+    if norm(r)^2 < epsilon
+        break;
+    end
+    
+    if k > 100
+        fprintf('Doesnt converge.\n');
+        converge = false;
         break;
     end
 end
 timecost_t = toc;
+if converge
+    beta_t = beta_k;
+    theta_t = reshape(bigTheta, q, M);
+    theta_t = theta_t';
+    alpha_t = uniquetol(theta_t, 1e-3, 'byrows', true);
+    S_t = size(alpha_t,1);
+    fprintf('Estimated S: %d\n', S_t);
+    BIC = bic(X, Y, Z, beta_t', theta_t, S_t);
+else
+    continue;
+end
 
-beta_t = beta_k;
-theta_t = reshape(bigTheta, q, M);
-theta_t = theta_t';
-alpha_t = unique(theta_t, 'rows', 'stable');
-S_t = size(alpha_t,1);
-BIC = bic(X, Y, Z, beta_t, theta_t, S_t);
 if BIC<min_BIC
     min_BIC = BIC;
     beta = beta_t;

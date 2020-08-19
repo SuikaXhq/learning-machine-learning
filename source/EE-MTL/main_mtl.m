@@ -4,6 +4,12 @@ fprintf('Simulated Data Experiments (MTL, CD fusion):\n');
 case_number = input('Input case number: ');
 n = 1024*(2-mod(case_number,2));
 switch case_number
+    case 0
+        n = 128;
+        M = 50;
+        S = 3;
+        p = 5;
+        q = 3;
     case 1
         M = 50;
         S = 3;
