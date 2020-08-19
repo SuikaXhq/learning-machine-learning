@@ -14,20 +14,13 @@ N = sum(n);
 fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
 fprintf('Calculating W_i..\n');
 W = cell(1,M);
-if nargin == 5
-    for i=1:M
-%         W{i} = sigma^(-2)*(eye(n(i)) - sigma^(-2)* Z{i}*(1/psi*eye(q) + sigma^(-2)*Z{i}'*Z{i})*Z{i}');
-        W{i} = (sigma^2*eye(n(i))+psi^2*Z{i}*Z{i}')\eye(n(i));
-    end
-else
-    lme = cell(1,M);
-    psi = cell(1,M);
-    sigma = zeros(1,M);
-    parfor i=1:M
-        lme{i} = fitlmematrix(X{i}, Y{i}, Z{i}, [], 'CovariancePattern', 'Isotropic','FitMethod','REML');
-        [psi{i}, sigma(i)] = covarianceParameters(lme{i});
-        W{i} = (sigma(i)^2*eye(n(i))+Z{i}*psi{i}{1}*Z{i}')\eye(n(i));
-    end
+lme = cell(1,M);
+psi = cell(1,M);
+sigma = zeros(1,M);
+parfor i=1:M
+    lme{i} = fitlmematrix(X{i}, Y{i}, Z{i}, [], 'CovariancePattern', 'Isotropic','FitMethod','REML');
+    [psi{i}, sigma(i)] = covarianceParameters(lme{i});
+    W{i} = (sigma(i)^2*eye(n(i))+Z{i}*psi{i}{1}*Z{i}')\eye(n(i));
 end
 fprintf('Initialization done.\n');
 
