@@ -62,7 +62,7 @@ subgroup_est = cell(1,100);
 theta_full = cell(1,100);
 lambda_list = cell(1,100);
 
-for j = 1:100
+for j = 1:20
     [X{j}, Z{j}, Y{j}, beta_0{j}, alpha_0{j}, theta_0{j}, subgroup{j}] = data_generate(M,S,n,p,q);
     %load(sprintf('Data_full_M%d_S%d_n%d_p%d_q%d.mat', M, S, n, p, q));
     [beta_est{j}, alpha_est{j}, theta_est{j}, subgroup_est{j}, timecost_full(j)] = mtl(X{j}, Z{j}, Y{j}, S);

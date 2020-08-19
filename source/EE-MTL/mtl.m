@@ -89,7 +89,7 @@ delta = B'*bigTheta;
 t=0;
 max_lambda = 1.1*norm(delta)/M/(M-1)*2;
 lambda_list = 0:0.05*max_lambda:max_lambda;
-for lambda = lambda_list(1:10)
+for lambda = lambda_list(1:5)
 t = t+1;
 fprintf('Lambda: %.4f\n', lambda);
 
@@ -159,10 +159,12 @@ if BIC<min_BIC
     theta = theta_t;
     alpha = alpha_t;
     timecost(2) = timecost_t;
+    best_lambda = lambda;
     S = S_t;
 end
 
 end
+fprintf('Best Lambda: %.4f\n', best_lambda);
 fprintf('Step 2 done. Time cost: %.6fs\n', timecost(2));
 
 subgroup = cell(1,S);
