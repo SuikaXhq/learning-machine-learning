@@ -1,4 +1,4 @@
-function [beta, alpha, theta, subgroup, timecost] = mtl(X, Z, Y, sigma, psi)
+function [beta, alpha, theta, subgroup, timecost] = mtl(X, Z, Y, S_real)
 %% Initialize
 fprintf('Initializing..\n');
 epsilon = 1e-6;
@@ -96,7 +96,7 @@ delta = B'*bigTheta;
 t=0;
 max_lambda = 1.1*norm(delta)/M/(M-1)*2;
 lambda_list = 0:0.05*max_lambda:max_lambda;
-for lambda = lambda_list
+for lambda = lambda_list(1:10)
 t = t+1;
 fprintf('Lambda: %.4f\n', lambda);
 
@@ -179,7 +179,7 @@ end
 tic;
 for i=1:M
     for s=1:S
-        if sum(theta(i,:)~=alpha(s,:))==0
+        if sum((theta(i,:)-alpha(s,:))>1e-3)==0
             subgroup{s} = [subgroup{s}, i];
             break;
         end
