@@ -37,25 +37,25 @@ switch case_number
         S = 7;
 end
 
-S_est_full = zeros(1,100);
-timecost_full = zeros(1,100);
-NMI_full = zeros(1,100);
-perfect_full = zeros(1,100);
-RMSE_beta_full = zeros(1,100);
-RMSE_theta_full = zeros(1,100);
-X = cell(1,100);
-Z = cell(1,100);
-Y = cell(1,100);
-beta_0 = cell(1,100);
-alpha_0 = cell(1,100);
-theta_0 = cell(1,100);
-subgroup = cell(1,100);
-beta_est = cell(1,100);
-alpha_est = cell(1,100);
-theta_est = cell(1,100);
-subgroup_est = cell(1,100);
-theta_full = cell(1,100);
-lambda_list = cell(1,100);
+S_est_full = zeros(1,20);
+timecost_full = zeros(1,20);
+NMI_full = zeros(1,20);
+perfect_full = zeros(1,20);
+RMSE_beta_full = zeros(1,20);
+RMSE_theta_full = zeros(1,20);
+X = cell(1,20);
+Z = cell(1,20);
+Y = cell(1,20);
+beta_0 = cell(1,20);
+alpha_0 = cell(1,20);
+theta_0 = cell(1,20);
+subgroup = cell(1,20);
+beta_est = cell(1,20);
+alpha_est = cell(1,20);
+theta_est = cell(1,20);
+subgroup_est = cell(1,20);
+theta_full = cell(1,20);
+lambda_list = cell(1,20);
 
 for j = 1:20
     [X{j}, Z{j}, Y{j}, beta_0{j}, alpha_0{j}, theta_0{j}, subgroup{j}] = data_generate(M,S,n,p,q);

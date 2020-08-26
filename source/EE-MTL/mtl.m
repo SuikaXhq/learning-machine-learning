@@ -45,6 +45,7 @@ min_BIC = Inf;
 fprintf('Step 2: ADMM\n');
 
 % B
+fprintf('Calculating B.\n');
 B = zeros(q*M*(M-1)/2, q*M);
 t = 0;
 for i=1:M
@@ -56,18 +57,21 @@ end
 B = B';
 
 % big Z
+fprintf('Calculating Z.\n');
 bigZ = [];
 for i=1:M
     bigZ = blkdiag(bigZ, Z{i});
 end
 
 % big W
+fprintf('Calculating W.\n');
 bigW = [];
 for i=1:M
     bigW = blkdiag(bigW, W{i});
 end
 
 % D
+fprintf('Calculating D.\n');
 D = [];
 for i=1:M
     D = blkdiag(D, Z{i}'*W{i}*X{i});
