@@ -1,4 +1,4 @@
-function [beta, alpha, theta, theta_full, subgroup, lambda_list, BIC, timecost] = eemtl(X, Z, Y, sigma, psi)
+function [beta, alpha, theta, subgroup_full, subgroup, lambda_list, BIC, timecost] = eemtl(X, Z, Y, sigma, psi)
 % X: 1xM Cell with n_i x p Matrix contents
 % Z: 1xM Cell with n_i x q Matrix contents
 % y: 1xM Cell with n_i-d Vector contents

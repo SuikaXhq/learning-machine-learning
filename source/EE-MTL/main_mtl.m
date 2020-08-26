@@ -1,43 +1,33 @@
+for case_number = [2 3 5 6]
 clear;
 fprintf('Simulated Data Experiments (MTL, CD fusion):\n');
 %fprintf('Input hyper-parameters:\n');
-case_number = input('Input case number: ');
-n = 1024*(2-mod(case_number,2));
+%case_number = input('Input case number: ');
+n = 1024;
+S = 7;
 switch case_number
-    case 0
-        n = 128;
-        M = 50;
-        S = 3;
-        p = 5;
-        q = 3;
     case 1
         M = 50;
-        S = 3;
         p = 5;
         q = 3;
     case 2
         M = 100;
-        S = 3;
         p = 5;
         q = 3;
     case 3
-        M = 100;
-        S = 5;
+        M = 50;
         p = 20;
         q = 12;
     case 4
         M = 100;
-        S = 5;
         p = 20;
         q = 12;
     case 5
-        M = 150;
-        S = 7;
+        M = 50;
         p = 200;
         q = 120;
     case 6
-        M = 150;
-        S = 7;
+        M = 100;
         p = 200;
         q = 120;
 end
@@ -88,3 +78,4 @@ file = fopen(sprintf('Report_mtl_case%d.txt',case_number),'w');
 fprintf('-------------------------------\nReport:\nCase: %d\n\nTime cost: %.6f\nS_est(Mean, Median, Min, Max): %d,%d,%d,%d\nNMI: %.4f\nPerfect Recover: %.2f\nRMSE(beta): %.4f\nRMSE(theta): %.4f\n-------------------------------\nNMI NaNs: %d\n-------------------------------\n', case_number,timecost,S_mean,S_median,S_min,S_max,NMI,perfect_recover,RMSE_beta,RMSE_theta,NaNs);
 fprintf(file, '-------------------------------\nReport:\nCase: %d\n\nTime cost: %.6f\nS_est(Mean, Median, Min, Max): %d,%d,%d,%d\nNMI: %.4f\nPerfect Recover: %.2f\nRMSE(beta): %.4f\nRMSE(theta): %.4f\n-------------------------------\nNMI NaNs: %d\n-------------------------------\n', case_number,timecost,S_mean,S_median,S_min,S_max,NMI,perfect_recover,RMSE_beta,RMSE_theta,NaNs);
 fclose(file);
+end
