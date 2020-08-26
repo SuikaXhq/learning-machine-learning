@@ -4,32 +4,37 @@ fprintf('Simulated Data Experiments (K-means):\n');
 %fprintf('Input hyper-parameters:\n');
 %case_number = input('Input case number: ');
 n = 1024;
-S = 7;
 switch case_number
     case 1
         M = 50;
         p = 5;
         q = 3;
+        S = 3;
     case 2
         M = 100;
         p = 5;
         q = 3;
+        S = 3;
     case 3
         M = 50;
         p = 20;
         q = 12;
+        S = 5;
     case 4
         M = 100;
         p = 20;
         q = 12;
+        S = 5;
     case 5
         M = 50;
         p = 200;
         q = 120;
+        S = 7;
     case 6
         M = 100;
         p = 200;
         q = 120;
+        S = 7;
 end
 
 S_est_full = zeros(1,100);
