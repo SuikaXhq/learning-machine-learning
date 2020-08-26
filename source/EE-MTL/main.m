@@ -1,5 +1,4 @@
 for case_number = [2 3 5 6]
-clear;
 fprintf('Simulated Data Experiments:\n');
 %fprintf('Input hyper-parameters:\n');
 %case_number = input('Input case number: ');
@@ -81,4 +80,5 @@ file = fopen(sprintf('Report_case%d.txt',case_number),'w');
 fprintf('-------------------------------\nReport:\nCase: %d\n\nTime cost: %.6f\nS_est(Mean, Median, Min, Max): %d,%d,%d,%d\nNMI: %.4f\nPerfect Recover: %.2f\nRMSE(beta): %.4f\nRMSE(theta): %.4f\n-------------------------------\n', case_number,timecost,S_mean,S_median,S_min,S_max,NMI,perfect_recover,RMSE_beta,RMSE_theta);
 fprintf(file, '-------------------------------\nReport:\nCase: %d\n\nTime cost: %.6f\nS_est(Mean, Median, Min, Max): %d,%d,%d,%d\nNMI: %.4f\nPerfect Recover: %.2f\nRMSE(beta): %.4f\nRMSE(theta): %.4f\n-------------------------------\n', case_number,timecost,S_mean,S_median,S_min,S_max,NMI,perfect_recover,RMSE_beta,RMSE_theta);
 fclose(file);
+clear;
 end
