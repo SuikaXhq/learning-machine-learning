@@ -40,15 +40,15 @@ fig = figure();
 set(fig,'defaultAxesColorOrder',[0 0 0; 0 0 0]);
 hold on
 yyaxis right
-bar(lambda_list, BIC, 1, 'FaceColor', [0.8,0.8,0.8]);
+bar(lambda_list, BIC, 1, 'FaceColor', [0.8,0.8,0.8], 'EdgeColor',[0.9,0.9,0.9]);
 ylim([1.4, 10]);
 ylabel('Modified BIC');
 
 yyaxis left
-plot(lambda_list, NMI_full, '-k');
+plot(lambda_list, NMI_full, '.-k');
 ylim([-0.05, 1.05]);
 [~, index] = min(BIC);
-plot([lambda_list(index), lambda_list(index)], [-.05,1.05],'Color',[0.5,0.5,0.5],'LineWidth', 2.5);
+plot([lambda_list(index), lambda_list(index)], [-.05,1.05],'--k','LineWidth', 2.5);
 ylabel('NMI');
 
 xlabel('\lambda');
