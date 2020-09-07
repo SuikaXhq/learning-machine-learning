@@ -125,7 +125,10 @@ while true
     %% delta
     delta = B'*bigTheta + nu;
     for i=1:M*(M-1)/2
-        delta((i-1)*q+1:i*q) = max(1-lambda/norm(delta((i-1)*q+1:i*q)),0)*delta((i-1)*q+1:i*q);
+        temp = delta((i-1)*q+1:i*q);
+        if norm(temp) <= 1.85*lambda  % TLP
+            delta((i-1)*q+1:i*q) = max(1-lambda/norm(temp),0)*temp;
+        end
     end
     
     %% nu
