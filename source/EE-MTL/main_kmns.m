@@ -1,36 +1,31 @@
-for case_number = [2 3 5 6]
+for case_number = [2 4 5]
 fprintf('Simulated Data Experiments (K-means):\n');
 %fprintf('Input hyper-parameters:\n');
 %case_number = input('Input case number: ');
 n = 1024;
+M = 50;
 switch case_number
     case 1
-        M = 50;
         p = 5;
         q = 3;
         S = 3;
     case 2
-        M = 100;
-        p = 5;
-        q = 3;
+        p = 10;
+        q = 6;
         S = 3;
     case 3
-        M = 50;
         p = 20;
         q = 12;
         S = 5;
     case 4
-        M = 100;
-        p = 20;
-        q = 12;
+        p = 40;
+        q = 24;
         S = 5;
     case 5
-        M = 50;
-        p = 200;
-        q = 120;
+        p = 100;
+        q = 60;
         S = 7;
     case 6
-        M = 100;
         p = 200;
         q = 120;
         S = 7;
