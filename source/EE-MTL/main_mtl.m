@@ -1,10 +1,16 @@
-for case_number = [2 4 5 6]
+for case_number = 1:6
 fprintf('Simulated Data Experiments (MTL, CD fusion):\n');
 %fprintf('Input hyper-parameters:\n');
 %case_number = input('Input case number: ');
 n = 1024;
 M = 50;
 switch case_number
+    case 0
+        n = 128;
+        M = 20;
+        p = 5;
+        q = 3;
+        S = 3;
     case 1
         p = 5;
         q = 3;
@@ -54,7 +60,7 @@ lambda_list = cell(1,20);
 for j = 1:20
     [X{j}, Z{j}, Y{j}, beta_0{j}, alpha_0{j}, theta_0{j}, subgroup{j}] = data_generate(M,S,n,p,q);
     %load(sprintf('Data_full_M%d_S%d_n%d_p%d_q%d.mat', M, S, n, p, q));
-    [beta_est{j}, alpha_est{j}, theta_est{j}, subgroup_est{j}, timecost_full(j)] = mtl(X{j}, Z{j}, Y{j}, S);
+    [beta_est{j}, alpha_est{j}, theta_est{j}, subgroup_est{j}, timecost_full(j)] = mtl(X{j}, Z{j}, Y{j});
     S_est_full(j) = size(alpha_est{j},1);
     [NMI_full(j), perfect_full(j)] = nmi(subgroup{j}, subgroup_est{j});
     RMSE_beta_full(j) = rmse(beta_0{j}, beta_est{j});

@@ -1,4 +1,4 @@
-function [beta, alpha, theta, subgroup, timecost] = mtl(X, Z, Y, S_real)
+function [beta, alpha, theta, subgroup, timecost] = mtl(X, Z, Y)
 %% Initialize
 fprintf('Initializing..\n');
 epsilon = 1e-6;
@@ -93,7 +93,7 @@ delta = B'*bigTheta;
 t=0;
 max_lambda = 1.1*norm(delta)/M/(M-1)*2;
 lambda_list = 0:0.05*max_lambda:max_lambda;
-for lambda = lambda_list(1:5)
+for lambda = lambda_list
 t = t+1;
 fprintf('Lambda: %.4f\n', lambda);
 
@@ -156,6 +156,7 @@ if converge
     S_t = size(alpha_t,1);
     fprintf('Estimated S: %d\n', S_t);
     BIC = bic(X, Y, Z, beta_t', theta_t, S_t);
+    fprintf('BIC: %.4f\n', BIC);
 else
     continue;
 end
