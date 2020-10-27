@@ -59,7 +59,7 @@ Z_full{k} = Z;
 end
 
 %% Save
-save(sprintf('data/Case%d.mat', case_number), 'X_full','Z_full','Y_full','subgroup_full');
+save(sprintf('data/Case%d.mat', case_number), 'X_full','Z_full','Y_full','subgroup_full', '-v7.3');
 
 
 end
