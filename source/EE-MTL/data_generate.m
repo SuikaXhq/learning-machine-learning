@@ -1,5 +1,30 @@
-function [X, Z, Y, beta_0, alpha_0, theta_0, subgroup] = data_generate(M,S,n,p,q)
+for case_number = 1:18
 
+n = [1024,1024,1024,1024,1024,1024,32,64,128,256,512,1024,1024,1024,1024,1024,1024,1024];
+M = [50,50,50,50,50,50,50,50,50,50,50,5,10,20,30,40,50,50];
+S = [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,10,30];
+p = [5,10,20,40,100,200,10,10,10,10,10,10,10,10,10,10,10,10];
+q = [3,6,12,24,60,120,6,6,6,6,6,6,6,6,6,6,6,6];
+
+n = n(case_number);
+M = M(case_number);
+S = S(case_number);
+p = p(case_number);
+q = q(case_number);
+
+fprintf('Generating data for case %d, 100 replicates.\n', case_number);
+generate_data(M,S,n,p,q,case_number);
+
+end
+
+function [X, Z, Y, beta_0, alpha_0, theta_0, subgroup] = generate_data(M,S,n,p,q,case_number)
+
+X_full = cell(1,100);
+Z_full = cell(1,100);
+Y_full = cell(1,100);
+subgroup_full = cell(1,100);
+
+for k=1:100
 X = cell(1,M);
 Z = cell(1,M);
 Y = cell(1,M);
@@ -46,6 +71,14 @@ for i=1:M
     end
 end
 
+X_full{k} = X;
+Y_full{k} = Y;
+Z_full{k} = Z;
+
+end
+
 %% Save
-%save(sprintf('Data_full_M%d_S%d_n%d_p%d_q%d.mat', M, S, n, p, q), 'X','Z','Y','beta_0','alpha_0','theta_0','subgroup');
+save(sprintf('data/Case%d.mat', case_number), 'X_full','Z_full','Y_full','subgroup_full');
+
+
 end

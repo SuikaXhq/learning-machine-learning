@@ -12,7 +12,7 @@ for i=1:M
 end
 N = sum(n);
 fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
-fprintf('Calculating W_i..\n');
+% fprintf('Calculating W_i..\n');
 W = cell(1,M);
 lme = cell(1,M);
 psi = cell(1,M);
@@ -25,7 +25,7 @@ end
 fprintf('Initialization done.\n');
 
 %% Step 1: Calculate check parameters
-fprintf('Step 1: Calculate check parameters.\n');
+% fprintf('Step 1: Calculate check parameters.\n');
 beta_check = zeros(M, p);
 theta_check = zeros(M, q);
 tic;
@@ -36,16 +36,16 @@ for i=1:M
     theta_check(i,:) = check(p+1:end);
 end
 timecost(1) = toc;
-fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
+% fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 
 
 %% ADMM
 % BIC tuning
 min_BIC = Inf;
-fprintf('Step 2: ADMM\n');
+% fprintf('Step 2: ADMM\n');
 
 % B
-fprintf('Calculating B.\n');
+% fprintf('Calculating B.\n');
 B = zeros(q*M*(M-1)/2, q*M);
 t = 0;
 for i=1:M
@@ -57,21 +57,21 @@ end
 B = B';
 
 % big Z
-fprintf('Calculating Z.\n');
+% fprintf('Calculating Z.\n');
 bigZ = [];
 for i=1:M
     bigZ = blkdiag(bigZ, Z{i});
 end
 
 % big W
-fprintf('Calculating W.\n');
+% fprintf('Calculating W.\n');
 bigW = [];
 for i=1:M
     bigW = blkdiag(bigW, W{i});
 end
 
 % D
-fprintf('Calculating D.\n');
+% fprintf('Calculating D.\n');
 D = [];
 for i=1:M
     D = blkdiag(D, Z{i}'*W{i}*X{i});
@@ -95,7 +95,7 @@ max_lambda = 1.1*norm(delta)/M/(M-1)*2;
 lambda_list = 0:0.05*max_lambda:max_lambda;
 for lambda = lambda_list
 t = t+1;
-fprintf('Lambda: %.4f\n', lambda);
+% fprintf('Lambda: %.4f\n', lambda);
 
 % bigTheta
 bigTheta = Theta_Check;
@@ -142,7 +142,7 @@ while true
     end
     
     if k > 100
-        fprintf('Doesnt converge.\n');
+%         fprintf('Doesnt converge.\n');
         converge = false;
         break;
     end
@@ -154,9 +154,9 @@ if converge
     theta_t = theta_t';
     alpha_t = uniquetol(theta_t, 1e-3, 'byrows', true);
     S_t = size(alpha_t,1);
-    fprintf('Estimated S: %d\n', S_t);
+%     fprintf('Estimated S: %d\n', S_t);
     BIC = bic(X, Y, Z, beta_t', theta_t, S_t);
-    fprintf('BIC: %.4f\n', BIC);
+%     fprintf('BIC: %.4f\n', BIC);
 else
     continue;
 end
@@ -172,8 +172,8 @@ if BIC<min_BIC
 end
 
 end
-fprintf('Best Lambda: %.4f\n', best_lambda);
-fprintf('Step 2 done. Time cost: %.6fs\n', timecost(2));
+% fprintf('Best Lambda: %.4f\n', best_lambda);
+% fprintf('Step 2 done. Time cost: %.6fs\n', timecost(2));
 
 subgroup = cell(1,S);
 for s=1:S

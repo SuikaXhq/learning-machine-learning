@@ -17,11 +17,10 @@ for i=1:M
     n(i) = size(X{i},1);
 end
 fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
-fprintf('Calculating W_i..\n');
+% fprintf('Calculating W_i..\n');
 W = cell(1,M);
 if nargin == 5
     for i=1:M
-%         W{i} = sigma^(-2)*(eye(n(i)) - sigma^(-2)* Z{i}*(1/psi*eye(q) + sigma^(-2)*Z{i}'*Z{i})*Z{i}');
         W{i} = (sigma^2*eye(n(i))+psi^2*Z{i}*Z{i}')\eye(n(i));
     end
 else
@@ -37,7 +36,7 @@ end
 fprintf('Initialization done.\n');
 
 %% Step 1: Calculate check parameters
-fprintf('Step 1: Calculate check parameters.\n');
+% fprintf('Step 1: Calculate check parameters.\n');
 beta_check = zeros(M, p);
 theta_check = zeros(M, q);
 tic;
@@ -48,10 +47,10 @@ for i=1:M
     theta_check(i,:) = check(p+1:end);
 end
 timecost(1) = toc;
-fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
+% fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 
 %% Step 2: Calculate tilde parameters
-fprintf('Step 2: Calculate tilde parameters.\n');
+% fprintf('Step 2: Calculate tilde parameters.\n');
 tic;
 LHS = 0;
 RHS = 0;
@@ -64,10 +63,10 @@ beta_tilde = (LHS \ RHS)';
 % beta_tilde = 1/M*sum(beta_check, 1);
 theta_tilde = theta_check;
 timecost(2) = toc;
-fprintf('Step 2 done. Timecost: %.6fs\n',timecost(2));
+% fprintf('Step 2 done. Timecost: %.6fs\n',timecost(2));
 
 %% Step 3: Calculate delta tilde
-fprintf('Step 3: Calculate delta tilde.\n');
+% fprintf('Step 3: Calculate delta tilde.\n');
 delta_tilde = zeros(M,M);
 tic;
 for i=1:M
@@ -76,12 +75,12 @@ for i=1:M
     end
 end
 timecost(3) = toc;
-fprintf('Step 3 done. Timecost: %.6fs\n',timecost(3));
+% fprintf('Step 3 done. Timecost: %.6fs\n',timecost(3));
 
 %% BIC tuning
-fprintf('Start tuning lambda via BIC.\n');
+% fprintf('Start tuning lambda via BIC.\n');
 max_lambda = ceil(1.2*max(delta_tilde(:)));
-fprintf('Max lambda: %d\n', max_lambda);
+% fprintf('Max lambda: %d\n', max_lambda);
 lambda_step = 0.05*max_lambda;
 timecost_full = zeros(3,21);
 theta_full = cell(1,21);
@@ -93,7 +92,7 @@ index_min_BIC = 0;
 t = 0;
 
 for lambda = lambda_list
-    fprintf('Lambda: %.3f\n', lambda);
+%     fprintf('Lambda: %.3f\n', lambda);
     t = t+1;
     %% Step 4: Calculate EE-delta
     tic;
@@ -122,7 +121,7 @@ for lambda = lambda_list
     %% Step 7: Calculate BIC
     theta_full{t} = theta_estimate;
     BIC(t) = bic(X, Y, Z, beta_tilde, theta_estimate, S);
-    fprintf('BIC: %.4f\n', BIC(t));
+%     fprintf('BIC: %.4f\n', BIC(t));
     if BIC(t)<min_BIC
         index_min_BIC = t;
         min_BIC = BIC(t);
@@ -135,12 +134,12 @@ theta = theta_full{index_min_BIC};
 alpha = unique(theta, 'rows', 'stable');
 subgroup = subgroup_full{index_min_BIC};
 timecost(4:6) = mean(timecost_full,2);
-fprintf('Step 4: Calculate EE-delta.\nAverage time cost: %.6fs\n', timecost(4));
-fprintf('Step 5: Estimate subgroups.\nAverage time cost: %.6fs\n', timecost(5));
-fprintf('Step 6: Calculate alpha_s and theta_estimate.\nAverage time cost: %.6fs\n', timecost(6));
-fprintf('All steps done. Returning results.\n');
-fprintf('Best BIC: %.4f\n', min_BIC);
-fprintf('Best lambda: %.3f\n', lambda_list(index_min_BIC));
+% fprintf('Step 4: Calculate EE-delta.\nAverage time cost: %.6fs\n', timecost(4));
+% fprintf('Step 5: Estimate subgroups.\nAverage time cost: %.6fs\n', timecost(5));
+% fprintf('Step 6: Calculate alpha_s and theta_estimate.\nAverage time cost: %.6fs\n', timecost(6));
+% fprintf('All steps done. Returning results.\n');
+% fprintf('Best BIC: %.4f\n', min_BIC);
+% fprintf('Best lambda: %.3f\n', lambda_list(index_min_BIC));
 fprintf('Total time cost: %.6fs\n', sum(timecost(2:6)));
 timecost = sum(timecost(2:6));
 
@@ -148,7 +147,7 @@ timecost = sum(timecost(2:6));
 function subgroup_new = subgroup_estimate(subgroup_old, i, A_raw)
     if size(A_raw,1)==0
         subgroup_new = subgroup_old;
-        fprintf('Estimated subgroup number: %d\n', i-1);
+%         fprintf('Estimated subgroup number: %d\n', i-1);
     else
         %fprintf('Estimating subgroup No.%d\n', i);
         subgroup_est = A_raw(1,:);
