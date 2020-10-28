@@ -55,6 +55,7 @@ end
 X_full{k} = X;
 Y_full{k} = Y;
 Z_full{k} = Z;
+subgroup_full{k} = subgroup;
 
 end
 
