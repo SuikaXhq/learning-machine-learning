@@ -67,7 +67,7 @@ min_BIC = Inf;
 timecost_full = zeros(1,10);
 for K=1:10
     % initial
-    fprintf('K = %d\n',K);
+%     fprintf('K = %d\n',K);
     tic;
     centroids = theta_tilde(randperm(M,K),:);
     subgroup = zeros(1,M);
@@ -122,6 +122,7 @@ tic;
 for k=1:best_K
     subgroup{k} = index(subgroup_est==k);
 end
+subgroup(cellfun(@isempty,subgroup))=[];
 timecost(4) = toc;
 
 BIC = min_BIC;

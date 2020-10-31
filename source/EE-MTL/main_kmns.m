@@ -4,7 +4,7 @@ fprintf(file, 'Case,Timecost,S_mean,S_median,S_min,S_max,NMI,Perfect_recover\n')
 fclose(file);
 
 fprintf('Simulated Data Experiments(K-means):\n');
-for case_number = 3:18
+for case_number = 3:17
 S_est_full = zeros(1,100);
 timecost_full = zeros(1,100);
 NMI_full = zeros(1,100);
