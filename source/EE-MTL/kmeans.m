@@ -65,7 +65,9 @@ timecost(2) = toc;
 min_BIC = Inf;
 % fprintf('Step 3: K-means\n');
 timecost_full = zeros(1,10);
-for K=1:10
+
+max_K = min(10, M);
+for K=1:max_K
     % initial
 %     fprintf('K = %d\n',K);
     tic;
