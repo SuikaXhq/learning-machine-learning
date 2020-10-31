@@ -1,6 +1,6 @@
 function [beta, alpha, theta, subgroup, timecost] = mtl(X, Z, Y)
 %% Initialize
-fprintf('Initializing..\n');
+% fprintf('Initializing..\n');
 epsilon = 1e-6;
 timecost = zeros(1,6);
 M = size(X,2);
@@ -22,7 +22,7 @@ parfor i=1:M
     [psi{i}, sigma(i)] = covarianceParameters(lme{i});
     W{i} = (sigma(i)^2*eye(n(i))+Z{i}*psi{i}{1}*Z{i}')\eye(n(i));
 end
-fprintf('Initialization done.\n');
+% fprintf('Initialization done.\n');
 
 %% Step 1: Calculate check parameters
 % fprintf('Step 1: Calculate check parameters.\n');
