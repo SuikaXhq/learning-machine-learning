@@ -7,7 +7,7 @@ function [beta, alpha, theta, subgroup_full, subgroup, lambda_list, BIC, timecos
 % psi: Scalar, variance of random effect
 
 %% Initialize
-fprintf('Initializing..\n');
+% fprintf('Initializing..\n');
 timecost = zeros(1,6);
 M = size(X,2);
 p = size(X{1},2);
@@ -16,7 +16,7 @@ n = zeros(M,1);
 for i=1:M
     n(i) = size(X{i},1);
 end
-fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
+% fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
 % fprintf('Calculating W_i..\n');
 W = cell(1,M);
 if nargin == 5
@@ -33,7 +33,7 @@ else
         W{i} = (sigma(i)^2*eye(n(i))+Z{i}*psi{i}{1}*Z{i}')\eye(n(i));
     end
 end
-fprintf('Initialization done.\n');
+% fprintf('Initialization done.\n');
 
 %% Step 1: Calculate check parameters
 % fprintf('Step 1: Calculate check parameters.\n');

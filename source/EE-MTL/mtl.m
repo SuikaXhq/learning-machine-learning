@@ -11,7 +11,7 @@ for i=1:M
     n(i) = size(X{i},1);
 end
 N = sum(n);
-fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
+% fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
 % fprintf('Calculating W_i..\n');
 W = cell(1,M);
 lme = cell(1,M);
