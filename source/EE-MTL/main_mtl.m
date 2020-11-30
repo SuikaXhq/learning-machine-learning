@@ -4,7 +4,7 @@ fprintf(file, 'Case,Timecost,S_mean,S_median,S_min,S_max,NMI,Perfect_recover\n')
 fclose(file);
 
 fprintf('Simulated Data Experiments(MTL):\n');
-for case_number = [3 4 7:17]
+for case_number = [1:3, 7:17]
 S_est_full = zeros(1,100);
 timecost_full = zeros(1,100);
 NMI_full = zeros(1,100);
@@ -13,7 +13,7 @@ alpha_est = cell(1,100);
 subgroup_est = cell(1,100);
 
 load(sprintf('data/Case%d.mat', case_number));
-for j = 1:20
+for j = 1:100
     fprintf('Case: %d, Replicate: %d\n', case_number, j);
     [~, alpha_est{j}, ~, subgroup_est{j}, timecost_full(j)] = mtl(X_full{j}, Z_full{j}, Y_full{j});
     S_est_full(j) = size(alpha_est{j},1);
