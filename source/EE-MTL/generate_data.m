@@ -5,7 +5,7 @@ Z_full = cell(1,100);
 Y_full = cell(1,100);
 subgroup_full = cell(1,100);
 
-for k=1:1
+for k=1:100
 X = cell(1,M);
 Z = cell(1,M);
 Y = cell(1,M);
