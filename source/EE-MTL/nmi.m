@@ -5,9 +5,11 @@ M_s = zeros(1,S);
 M_s_est = zeros(1,S_est);
 for s=1:S
     M_s(s) = size(subgroup{s}, 2);
+    subgroup{s} = sort(subgroup{s});
 end
 for s=1:S_est
     M_s_est(s) = size(subgroup_est{s}, 2);
+    subgroup_est{s} = sort(subgroup_est{s});
 end
 M = sum(M_s);
 
