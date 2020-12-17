@@ -14,13 +14,22 @@ N = sum(n);
 % fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
 % fprintf('Calculating W_i..\n');
 W = cell(1,M);
-lme = cell(1,M);
-psi = cell(1,M);
-sigma = zeros(1,M);
-parfor i=1:M
-    lme{i} = fitlmematrix(X{i}, Y{i}, Z{i}, [], 'CovariancePattern', 'Isotropic','FitMethod','REML');
-    [psi{i}, sigma(i)] = covarianceParameters(lme{i});
-    W{i} = (sigma(i)^2*eye(n(i))+Z{i}*psi{i}{1}*Z{i}')\eye(n(i));
+big_Z = zeros(sum(n), M*q);
+long_Z = zeros(sum(n), q);
+long_X = zeros(sum(n), p);
+long_Y = zeros(sum(n),1);
+G = zeros(sum(n),1);
+for i=1:M
+    big_Z(1+sum(n(1:i-1)):sum(n(1:i)), 1+(i-1)*q:i*q) = Z{i};
+    long_Z(1+sum(n(1:i-1)):sum(n(1:i)), :) = Z{i};
+    long_X(1+sum(n(1:i-1)):sum(n(1:i)), :) = X{i};
+    long_Y(1+sum(n(1:i-1)):sum(n(1:i))) = Y{i};
+    G(1+sum(n(1:i-1)):sum(n(1:i))) = i;
+end
+lme = fitlmematrix([long_X, big_Z], long_Y, long_Z, G, 'CovariancePattern', 'Isotropic','FitMethod','REML');
+[psi, sigma] = covarianceParameters(lme);
+for i=1:M
+    W{i} = (sigma*eye(n(i))+Z{i}*psi{1}*Z{i}')\eye(n(i));
 end
 % fprintf('Initialization done.\n');
 
@@ -185,7 +194,7 @@ end
 tic;
 for i=1:M
     for s=1:S
-        if sum((theta(i,:)-alpha(s,:))>1e-3)==0
+        if sum(abs((theta(i,:)-alpha(s,:)))>1e-3)==0
             subgroup{s} = [subgroup{s}, i];
             break;
         end
