@@ -126,7 +126,7 @@ for i=1:M
 end
 tic;
 big_T = [long_X, big_Z*C];
-oracle = (big_T'*big_W*big_T) \ big_T'*W*long_Y;
+oracle = (big_T'*big_W*big_T) \ big_T'*big_W*long_Y;
 beta = oracle(1:p);
 oracle(1:p) = [];
 for s=1:S
