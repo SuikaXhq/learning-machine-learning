@@ -7,7 +7,7 @@ function [beta, alpha, theta, subgroup, timecost] = dishes(X, Z, Y, sigma, psi)
 % psi: Scalar, variance of random effect
 
 %% Initialize
-fprintf('Initializing..\n');
+%fprintf('Initializing..\n');
 timecost = zeros(1,6);
 M = size(X,2);
 p = size(X{1},2);
@@ -16,8 +16,8 @@ n = zeros(M,1);
 for i=1:M
     n(i) = size(X{i},1);
 end
-fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
-fprintf('Calculating W_i..\n');
+%fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
+%fprintf('Calculating W_i..\n');
 W = cell(1,M);
 if nargin == 5
     for i=1:M
@@ -42,10 +42,10 @@ else
         W{i} = (sigma*eye(n(i))+Z{i}*psi{1}*Z{i}')\eye(n(i));
     end
 end
-fprintf('Initialization done.\n');
+%fprintf('Initialization done.\n');
 
 %% Step 1: Calculate unit-wise GLS estimates
-fprintf('Step 1: Calculate unit-wise GLS estimates.\n');
+%fprintf('Step 1: Calculate unit-wise GLS estimates.\n');
 beta_U = zeros(M, p);
 theta_U = zeros(M, q);
 Sigma_big = cell(1,M);
@@ -58,10 +58,10 @@ for i=1:M
     theta_U(i,:) = check(p+1:end);
 end
 timecost(1) = toc;
-fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
+%fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 
 %% Step 2: Calculate modified unit-wise delta
-fprintf('Step 2: Calculate modified unit-wise delta.\n');
+%fprintf('Step 2: Calculate modified unit-wise delta.\n');
 delta_MU = zeros(M,M);
 tic;
 for i=1:M
@@ -71,10 +71,10 @@ for i=1:M
     end
 end
 timecost(2) = toc;
-fprintf('Step 2 done. Timecost: %.6fs\n',timecost(2));
+%fprintf('Step 2 done. Timecost: %.6fs\n',timecost(2));
 
 %% Step 3: Complete-linkage clustering
-fprintf('Step 3: Complete-linkage clustering.\n');
+%fprintf('Step 3: Complete-linkage clustering.\n');
 subgroup = cell(1,M);
 tic;
 for i=1:M
@@ -105,10 +105,10 @@ for i=1:M
 end
 
 timecost(3) = toc;
-fprintf('Step 3 done. Timecost: %.6fs\n',timecost(3));
+%fprintf('Step 3 done. Timecost: %.6fs\n',timecost(3));
 
 %% Step 4: Calculate beta and alpha via Oracle estimator
-fprintf('Step 4: Calculate beta and alpha via Oracle estimator.\n');
+%fprintf('Step 4: Calculate beta and alpha via Oracle estimator.\n');
 S = size(subgroup,2);
 alpha = zeros(S, q);
 theta = zeros(M, q);
@@ -131,13 +131,13 @@ beta = oracle(1:p);
 oracle(1:p) = [];
 for s=1:S
     alpha(s, :) = oracle(1+(s-1)*q:s*q)';
-    theta(subgroup{s}, :) = alpha(s, :);
+    theta(subgroup{s}, :) = alpha(s*ones(1,size(subgroup{s},2)), :);
 end
 timecost(4) = toc;
-fprintf('Step 4 done. Timecost: %.6fs\n',timecost(4));
+%fprintf('Step 4 done. Timecost: %.6fs\n',timecost(4));
 
 
-fprintf('All steps done. Returning results.\n');
+%fprintf('All steps done. Returning results.\n');
 fprintf('Total time cost: %.6fs\n', sum(timecost(2:4)));
 timecost = sum(timecost(2:4));
 

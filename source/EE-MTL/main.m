@@ -14,7 +14,7 @@ subgroup_est = cell(1,100);
 
 load(sprintf('data/Case%d.mat', case_number));
 for j = 1:100
-    fprintf('Replicate: %d\n', j);
+	fprintf('Case: %d, Replicate: %d\n', case_number, j);
 %     [~, alpha_est{j}, ~, ~, subgroup_est{j}, ~, ~, timecost_full(j)] = eemtl(X_full{j}, Z_full{j}, Y_full{j});
     [~, alpha_est{j}, ~, subgroup_est{j}, timecost_full(j)] = dishes(X_full{j}, Z_full{j}, Y_full{j});
     S_est_full(j) = size(alpha_est{j},1);
