@@ -49,10 +49,12 @@ end
 beta_U = zeros(M, p);
 theta_U = zeros(M, q);
 Sigma_big = cell(1,M);
+Var_big = cell(1,M);
 tic;
 for i=1:M
     T = [X{i},Z{i}];
-    Sigma_big{i} = (T'*W{i}*T) \ eye(p+q);
+    Var_big{i} = T'*W{i}*T;
+    Sigma_big{i} = Var_big{i} \ eye(p+q);
     check = Sigma_big{i} * T'*W{i}*Y{i};
     beta_U(i,:) = check(1:p);
     theta_U(i,:) = check(p+1:end);
@@ -60,7 +62,7 @@ end
 timecost(1) = toc;
 %fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 
-%% Step 2: Calculate modified unit-wise delta
+%% Step 2: Calculate standardized difference
 %fprintf('Step 2: Calculate modified unit-wise delta.\n');
 delta_MU = zeros(M,M);
 tic;
@@ -73,8 +75,8 @@ end
 timecost(2) = toc;
 %fprintf('Step 2 done. Timecost: %.6fs\n',timecost(2));
 
-%% Step 3: Complete-linkage clustering
-%fprintf('Step 3: Complete-linkage clustering.\n');
+%% Step 3-4: Complete-linkage clustering
+%fprintf('Step 3-4: Complete-linkage clustering.\n');
 subgroup = cell(1,M);
 tic;
 for i=1:M
@@ -105,36 +107,49 @@ for i=1:M
 end
 
 timecost(3) = toc;
-%fprintf('Step 3 done. Timecost: %.6fs\n',timecost(3));
+%fprintf('Step 3-4 done. Timecost: %.6fs\n',timecost(3));
 
-%% Step 4: Calculate beta and alpha via Oracle estimator
-%fprintf('Step 4: Calculate beta and alpha via Oracle estimator.\n');
+%% Step 5: Calculate beta and alpha
+%fprintf('Step 5: Calculate beta and alpha.\n');
 S = size(subgroup,2);
-alpha = zeros(S, q);
-theta = zeros(M, q);
-C = zeros(M*q, S*q);
-% construct category matrix
+M_S = zeros(1,S);
 for s=1:S
-    for i=1:size(subgroup{s},2)
-        index = subgroup{s}(i);
-        C(1+(index-1)*q:index*q, 1+(s-1)*q:s*q) = eye(q);
-    end
+    M_S(s) = size(subgroup{s},2);
 end
-big_W = zeros(sum(n));
+
+XWX = cell(1,M);
+ZWZ = cell(1,M);
 for i=1:M
-    big_W(1+sum(n(1:i-1)):sum(n(1:i)), 1+sum(n(1:i-1)):sum(n(1:i))) = W{i};
+    XWX{i} = Var_big{i}(1:p, 1:p);
+    ZWZ{i} = Var_big{i}(p+1:end, p+1:end);
 end
 tic;
-big_T = [long_X, big_Z*C];
-oracle = (big_T'*big_W*big_T) \ big_T'*big_W*long_Y;
-beta = oracle(1:p);
-oracle(1:p) = [];
+% beta_GLS
+LHS = 0;
+RHS = 0;
+for i=1:M
+    LHS = LHS + XWX{i};
+    RHS = RHS + XWX{i} * beta_U(i,:)';
+end
+beta = (LHS \ RHS)';
+
+% alpha
+
+alpha = zeros(S, q);
+theta = zeros(M, q);
 for s=1:S
-    alpha(s, :) = oracle(1+(s-1)*q:s*q)';
-    theta(subgroup{s}, :) = alpha(s*ones(1,size(subgroup{s},2)), :);
+    LHS = 0;
+    RHS = 0;
+    for k=1:M_S(s)
+        i = subgroup{s}(k);
+        LHS = LHS + ZWZ{i};
+        RHS = RHS + ZWZ{i} * theta_U(i,:)';
+    end  
+    alpha(s, :) = LHS \ RHS;
+    theta(subgroup{s}, :) = alpha(s*ones(1,M_S(s)), :);
 end
 timecost(4) = toc;
-%fprintf('Step 4 done. Timecost: %.6fs\n',timecost(4));
+%fprintf('Step 5 done. Timecost: %.6fs\n',timecost(4));
 
 
 %fprintf('All steps done. Returning results.\n');
