@@ -114,6 +114,7 @@ for K=1:max_K
     end
     timecost_full(K) = toc;
     S = K;
+	theta_k = centroids(subgroup, :);
     BIC = bic(X, Y, Z, beta_tilde, theta_k, S);
 %     fprintf('BIC: %.4f\n', BIC);
     if BIC<min_BIC
