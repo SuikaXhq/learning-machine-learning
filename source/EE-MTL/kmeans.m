@@ -1,4 +1,4 @@
-function [beta, alpha, theta, subgroup, BIC, timecost] = kmeans(X, Z, Y, sigma, psi)
+function [beta, alpha, theta, subgroup, BIC, timecost] = kmeans(X, Z, Y, K_true)
 
 % fprintf('Initializing..\n');
 timecost = zeros(1,6);
@@ -13,29 +13,23 @@ N = sum(n);
 % fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
 % fprintf('Calculating W_i..\n');
 W = cell(1,M);
-if nargin == 5
-    for i=1:M
-%         W{i} = sigma^(-2)*(eye(n(i)) - sigma^(-2)* Z{i}*(1/psi*eye(q) + sigma^(-2)*Z{i}'*Z{i})*Z{i}');
-        W{i} = (sigma^2*eye(n(i))+psi^2*Z{i}*Z{i}')\eye(n(i));
-    end
-else
-    big_Z = zeros(sum(n), M*q);
-    long_Z = zeros(sum(n), q);
-    long_X = zeros(sum(n), p);
-    long_Y = zeros(sum(n),1);
-    G = zeros(sum(n),1);
-    for i=1:M
-        big_Z(1+sum(n(1:i-1)):sum(n(1:i)), 1+(i-1)*q:i*q) = Z{i};
-        long_Z(1+sum(n(1:i-1)):sum(n(1:i)), :) = Z{i};
-        long_X(1+sum(n(1:i-1)):sum(n(1:i)), :) = X{i};
-        long_Y(1+sum(n(1:i-1)):sum(n(1:i))) = Y{i};
-        G(1+sum(n(1:i-1)):sum(n(1:i))) = i;
-    end
-    lme = fitlmematrix([long_X, big_Z], long_Y, long_Z, G, 'CovariancePattern', 'Isotropic','FitMethod','REML');
-    [psi, sigma] = covarianceParameters(lme);
-    for i=1:M
-        W{i} = (sigma*eye(n(i))+Z{i}*psi{1}*Z{i}')\eye(n(i));
-    end
+
+big_Z = zeros(sum(n), M*q);
+long_Z = zeros(sum(n), q);
+long_X = zeros(sum(n), p);
+long_Y = zeros(sum(n),1);
+G = zeros(sum(n),1);
+for i=1:M
+    big_Z(1+sum(n(1:i-1)):sum(n(1:i)), 1+(i-1)*q:i*q) = Z{i};
+    long_Z(1+sum(n(1:i-1)):sum(n(1:i)), :) = Z{i};
+    long_X(1+sum(n(1:i-1)):sum(n(1:i)), :) = X{i};
+    long_Y(1+sum(n(1:i-1)):sum(n(1:i))) = Y{i};
+    G(1+sum(n(1:i-1)):sum(n(1:i))) = i;
+end
+lme = fitlmematrix([long_X, big_Z], long_Y, long_Z, G, 'CovariancePattern', 'Isotropic','FitMethod','REML');
+[psi, sigma] = covarianceParameters(lme);
+for i=1:M
+    W{i} = (sigma*eye(n(i))+Z{i}*psi{1}*Z{i}')\eye(n(i));
 end
 % fprintf('Initialization done.\n');
 
@@ -77,8 +71,7 @@ min_BIC = Inf;
 % fprintf('Step 3: K-means\n');
 timecost_full = zeros(1,10);
 
-max_K = min(10, M);
-for K=1:max_K
+for K=K_true
     % initial
 %     fprintf('K = %d\n',K);
     tic;
