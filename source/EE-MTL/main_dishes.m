@@ -1,5 +1,5 @@
 clear;
-file = fopen('Report_dishes.csv','w');
+file = fopen('results/Report_dishes.csv','w');
 fprintf(file, 'Case,Timecost,S_mean,S_std,NMI,Perfect_recover\n');
 fclose(file);
 
@@ -30,7 +30,7 @@ perfect_recover = mean(perfect_full);
 S_mean = mean(S_est_full);
 S_std = std(S_est_full);
 
-file = fopen('Report_dishes.csv','a');
+file = fopen('results/Report_dishes.csv','a');
 fprintf(file, sprintf('%d,%.6f,%.2f,%.2f,%.6f,%.4f\n', case_number, timecost, S_mean, S_std, NMI, perfect_recover));
 fclose(file);
 save(sprintf('results/Case%d_dishes.mat', case_number), 'S_est_full','timecost_full','NMI_full','perfect_full','subgroup_est', '-v7.3');

@@ -175,19 +175,19 @@ for lambda = lambda_full
         BIC_full(t) = BIC;
     %     fprintf('BIC: %.4f\n', BIC);
 
-        subgroup_t = cell(1,S_t);
-        for s=1:S_t
-            subgroup_t{s} = [];
-        end
-        for i=1:M
-            for s=1:S_t
-                if sum(abs((theta_t(i,:)-alpha_t(s,:)))>1e-3)==0
-                    subgroup_t{s} = [subgroup_t{s}, i];
-                    break;
-                end
-            end
-        end
-        subgroup_full{t} = subgroup_t;
+%         subgroup_t = cell(1,S_t);
+%         for s=1:S_t
+%             subgroup_t{s} = [];
+%         end
+%         for i=1:M
+%             for s=1:S_t
+%                 if sum(abs((theta_t(i,:)-alpha_t(s,:)))>1e-3)==0
+%                     subgroup_t{s} = [subgroup_t{s}, i];
+%                     break;
+%                 end
+%             end
+%         end
+%         subgroup_full{t} = subgroup_t;
     else
         continue;
     end
@@ -198,7 +198,7 @@ for lambda = lambda_full
         theta = theta_t;
         alpha = alpha_t;
         timecost(2) = timecost_t;
-        best_lambda = lambda;
+%         best_lambda = lambda;
         S = S_t;
     end
 
