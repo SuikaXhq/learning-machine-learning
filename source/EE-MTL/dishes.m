@@ -1,15 +1,19 @@
 function [beta, alpha, theta, subgroup, timecost] = dishes(X, Z, Y, sigma, psi)
+% DISHES
+
+% Input:
 % X: 1xM Cell with n_i x p Matrix contents
 % Z: 1xM Cell with n_i x q Matrix contents
 % y: 1xM Cell with n_i-d Vector contents
-% lambda: hyperparameter for EE
-% sigma: Scalar, variance of observation noise
-% psi: Scalar, variance of random effect
+% sigma: Scalar, variance of observation noise, optional
+% psi: Scalar, variance of random effect, optional
 
 % Output:
 % beta: px1 vector
-% alpha: Sxq matrix with alpha_s as the s-th row
-% theta: Mxq matrix with theta_i as the i-th row
+% alpha: Sxq matrix with the s-th row as alpha_s
+% theta: Mxq matrix with the i-th row as theta_i
+% subgroup: 1xS cell with each element as a subgroup
+% timecost: wall-clock time cost excluding unit GLS estimate
 
 %% Initialize
 %fprintf('Initializing..\n');
@@ -49,8 +53,8 @@ else
 end
 %fprintf('Initialization done.\n');
 
-%% Step 1: Calculate unit-wise GLS estimates
-%fprintf('Step 1: Calculate unit-wise GLS estimates.\n');
+%% Step 1: Calculate unit GLS estimates
+%fprintf('Step 1: Calculate unit GLS estimates.\n');
 theta_U = zeros(M, q);
 Sigma_big = cell(1,M);
 Var_big = cell(1,M);
@@ -65,7 +69,7 @@ timecost(1) = toc;
 %fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 
 %% Step 2: Calculate standardized difference
-%fprintf('Step 2: Calculate modified unit-wise delta.\n');
+%fprintf('Step 2: Calculate standardized difference.\n');
 delta_MU = zeros(M,M);
 tic;
 for i=1:M
@@ -138,8 +142,6 @@ end
 timecost(4) = toc;
 %fprintf('Step 4 done. Timecost: %.6fs\n',timecost(4));
 
-
-%fprintf('All steps done. Returning results.\n');
 fprintf('Total time cost: %.6fs\n', sum(timecost(2:4)));
 timecost = sum(timecost(2:4));
 

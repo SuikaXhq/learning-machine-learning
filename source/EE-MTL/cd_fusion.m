@@ -1,4 +1,4 @@
-function [beta, alpha, theta, subgroup, timecost, lambda_full, BIC_full, subgroup_full] = mtl(X, Z, Y)
+function [beta, alpha, theta, subgroup, timecost, lambda_full, BIC_full, subgroup_full] = cd_fusion(X, Z, Y)
 %% Initialize
 % fprintf('Initializing..\n');
 epsilon = 1e-6;
@@ -164,6 +164,7 @@ for lambda = lambda_full
     end
     timecost_t = toc;
     if converge
+        fprintf('k=%d, converged.\n', k);
         beta_t = beta_k;
         theta_t = reshape(bigTheta, q, M);
         theta_t = theta_t';
