@@ -1,12 +1,13 @@
-function [beta, alpha, theta, subgroup, timecost] = dishes(X, Z, Y, sigma, psi)
+function [beta, alpha, theta, subgroup, timecost] = dishes(X, Z, Y, theta_U, W, Sigma_big)
 % DISHES
 
 % Input:
 % X: 1xM Cell with n_i x p Matrix contents
 % Z: 1xM Cell with n_i x q Matrix contents
 % y: 1xM Cell with n_i-d Vector contents
-% sigma: Scalar, variance of observation noise, optional
-% psi: Scalar, variance of random effect, optional
+% theta_U: Mxq matrix, unit GLS estimates, optional
+% W: 1xM Cell, each element contains nxn matrix as W_i, optional
+% Sigma_big: 1xM Cell, each element contains (p+q)x(p+q) matrix as [(X_i,Z_i)'*W_i*(X_i,Z_i)]^{-1}, optional
 
 % Output:
 % beta: px1 vector
@@ -26,13 +27,10 @@ for i=1:M
     n(i) = size(X{i},1);
 end
 %fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
-%fprintf('Calculating W_i..\n');
-W = cell(1,M);
-if nargin == 5
-    for i=1:M
-        W{i} = (sigma^2*eye(n(i))+psi^2*Z{i}*Z{i}')\eye(n(i));
-    end
-else
+
+if nargin < 6 % calculating theta_U, W, Sigma_big
+    %fprintf('Calculating W_i..\n');
+    W = cell(1,M);
     big_Z = zeros(sum(n), M*q);
     long_Z = zeros(sum(n), q);
     long_X = zeros(sum(n), p);
@@ -50,23 +48,23 @@ else
     for i=1:M
         W{i} = (sigma*eye(n(i))+Z{i}*psi{1}*Z{i}')\eye(n(i));
     end
-end
-%fprintf('Initialization done.\n');
+    %fprintf('Initialization done.\n');
 
-%% Step 1: Calculate unit GLS estimates
-%fprintf('Step 1: Calculate unit GLS estimates.\n');
-theta_U = zeros(M, q);
-Sigma_big = cell(1,M);
-Var_big = cell(1,M);
-tic;
-for i=1:M
-    T = [X{i},Z{i}];
-    Var_big{i} = T'*W{i}*T;
-    Sigma_big{i} = Var_big{i} \ eye(p+q);
-    theta_U(i,:) = Sigma_big{i}(p+1:end, :) * T'*W{i}*Y{i};
+    %% Step 1: Calculate unit GLS estimates
+    %fprintf('Step 1: Calculate unit GLS estimates.\n');
+    theta_U = zeros(M, q);
+    Sigma_big = cell(1,M);
+    Var_big = cell(1,M);
+    tic;
+    for i=1:M
+        T = [X{i},Z{i}];
+        Var_big{i} = T'*W{i}*T;
+        Sigma_big{i} = Var_big{i} \ eye(p+q);
+        theta_U(i,:) = Sigma_big{i}(p+1:end, :) * T'*W{i}*Y{i};
+    end
+    timecost(1) = toc;
+    %fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 end
-timecost(1) = toc;
-%fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 
 %% Step 2: Calculate standardized difference
 %fprintf('Step 2: Calculate standardized difference.\n');
@@ -88,11 +86,10 @@ timecost(2) = toc;
 subgroup = cell(1,M);
 tic;
 for i=1:M
-    subgroup{i} = [i];
+    subgroup{i} = i;
     delta_MU(i,i) = Inf;
 end
 lambda = chi2inv(0.99, q);
-D = delta_MU>lambda;
 for i=1:M
     if min(delta_MU, [], 'all')>lambda
         break;
@@ -119,6 +116,10 @@ timecost(3) = toc;
 S = size(subgroup,2);
 G = zeros(sum(n), p+S*q);
 theta = zeros(M, q);
+long_Y = zeros(sum(n),1);
+for i=1:M
+    long_Y(1+sum(n(1:i-1)):sum(n(1:i))) = Y{i};
+end
 tic;
 for s=1:S
     for i=subgroup{s}

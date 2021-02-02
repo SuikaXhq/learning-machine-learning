@@ -1,4 +1,4 @@
-function [beta, alpha, theta, subgroup, timecost, lambda_full, BIC_full, subgroup_full] = cd_fusion(X, Z, Y)
+function [beta, alpha, theta, subgroup, timecost, lambda_full, BIC_full, subgroup_full] = cd_fusion(X, Z, Y, beta_check, theta_check, W)
 %% Initialize
 % fprintf('Initializing..\n');
 epsilon = 1e-6;
@@ -12,41 +12,42 @@ for i=1:M
 end
 N = sum(n);
 % fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
-% fprintf('Calculating W_i..\n');
-W = cell(1,M);
-big_Z = zeros(sum(n), M*q);
-long_Z = zeros(sum(n), q);
-long_X = zeros(sum(n), p);
-long_Y = zeros(sum(n),1);
-G = zeros(sum(n),1);
-for i=1:M
-    big_Z(1+sum(n(1:i-1)):sum(n(1:i)), 1+(i-1)*q:i*q) = Z{i};
-    long_Z(1+sum(n(1:i-1)):sum(n(1:i)), :) = Z{i};
-    long_X(1+sum(n(1:i-1)):sum(n(1:i)), :) = X{i};
-    long_Y(1+sum(n(1:i-1)):sum(n(1:i))) = Y{i};
-    G(1+sum(n(1:i-1)):sum(n(1:i))) = i;
-end
-lme = fitlmematrix([long_X, big_Z], long_Y, long_Z, G, 'CovariancePattern', 'Isotropic','FitMethod','REML');
-[psi, sigma] = covarianceParameters(lme);
-for i=1:M
-    W{i} = (sigma*eye(n(i))+Z{i}*psi{1}*Z{i}')\eye(n(i));
-end
-% fprintf('Initialization done.\n');
+if nargin<6 % calculating beta_check, theta_check, W
+    % fprintf('Calculating W_i..\n');
+    W = cell(1,M);
+    big_Z = zeros(sum(n), M*q);
+    long_Z = zeros(sum(n), q);
+    long_X = zeros(sum(n), p);
+    long_Y = zeros(sum(n),1);
+    G = zeros(sum(n),1);
+    for i=1:M
+        big_Z(1+sum(n(1:i-1)):sum(n(1:i)), 1+(i-1)*q:i*q) = Z{i};
+        long_Z(1+sum(n(1:i-1)):sum(n(1:i)), :) = Z{i};
+        long_X(1+sum(n(1:i-1)):sum(n(1:i)), :) = X{i};
+        long_Y(1+sum(n(1:i-1)):sum(n(1:i))) = Y{i};
+        G(1+sum(n(1:i-1)):sum(n(1:i))) = i;
+    end
+    lme = fitlmematrix([long_X, big_Z], long_Y, long_Z, G, 'CovariancePattern', 'Isotropic','FitMethod','REML');
+    [psi, sigma] = covarianceParameters(lme);
+    for i=1:M
+        W{i} = (sigma*eye(n(i))+Z{i}*psi{1}*Z{i}')\eye(n(i));
+    end
+    % fprintf('Initialization done.\n');
 
-%% Step 1: Calculate check parameters
-% fprintf('Step 1: Calculate check parameters.\n');
-beta_check = zeros(M, p);
-theta_check = zeros(M, q);
-tic;
-for i=1:M
-    T = [X{i},Z{i}];
-    check = (T'*W{i}*T) \ T'*W{i}*Y{i};
-    beta_check(i,:) = check(1:p);
-    theta_check(i,:) = check(p+1:end);
+    %% Step 1: Calculate check parameters
+    % fprintf('Step 1: Calculate check parameters.\n');
+    beta_check = zeros(M, p);
+    theta_check = zeros(M, q);
+    tic;
+    for i=1:M
+        T = [X{i},Z{i}];
+        check = (T'*W{i}*T) \ T'*W{i}*Y{i};
+        beta_check(i,:) = check(1:p);
+        theta_check(i,:) = check(p+1:end);
+    end
+    timecost(1) = toc;
+    % fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
 end
-timecost(1) = toc;
-% fprintf('Step 1 done. Timecost: %.6fs\n',timecost(1));
-
 
 %% ADMM
 % BIC tuning
@@ -67,17 +68,11 @@ B = B';
 
 % big Z
 % fprintf('Calculating Z.\n');
-bigZ = [];
-for i=1:M
-    bigZ = blkdiag(bigZ, Z{i});
-end
+bigZ = blkdiag(Z{:});
 
 % big W
 % fprintf('Calculating W.\n');
-bigW = [];
-for i=1:M
-    bigW = blkdiag(bigW, W{i});
-end
+bigW = blkdiag(W{:});
 
 % D
 % fprintf('Calculating D.\n');

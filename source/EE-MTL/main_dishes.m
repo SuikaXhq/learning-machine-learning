@@ -4,7 +4,7 @@ fprintf(file, 'Case,Timecost,S_mean,S_std,NMI,Perfect_recover\n');
 fclose(file);
 
 fprintf('Simulated Data Experiments(DISHES):\n');
-for case_number = [14:18]
+for case_number = [1:18]
 S_est_full = zeros(1,100);
 timecost_full = zeros(1,100);
 NMI_full = zeros(1,100);
@@ -13,8 +13,9 @@ subgroup_est = cell(1,100);
 
 load(sprintf('data/Case%d.mat', case_number));
 for j = 1:100
+    load(sprintf('data/Case%d_Rep%d_unit_GLS.mat', case_number, j));
 	fprintf('Method: DISHES, Case: %d, Replicate: %d\n', case_number, j);
-    [~, ~, ~, subgroup_est{j}, timecost_full(j)] = dishes(X_full{j}, Z_full{j}, Y_full{j});
+    [~, ~, ~, subgroup_est{j}, timecost_full(j)] = dishes(X_full{j}, Z_full{j}, Y_full{j}, theta_U, W, Sigma_big);
     S_est_full(j) = size(subgroup_est{j},2);
     [NMI_full(j), perfect_full(j)] = nmi(subgroup_full{j}, subgroup_est{j});
     fprintf('S: %d, NMI: %.4f.', S_est_full(j), NMI_full(j));
