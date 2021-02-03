@@ -99,7 +99,7 @@ max_lambda = 10*norm(delta)/M/(M-1)*2;
 lambda_full = 0:0.05*max_lambda:max_lambda;
 BIC_full = zeros(1,21);
 subgroup_full = cell(1,21);
-
+tic;
 for lambda = lambda_full
     t = t+1;
     % fprintf('Lambda: %.4f\n', lambda);
@@ -109,7 +109,6 @@ for lambda = lambda_full
     % delta, nu
     delta = B'*bigTheta;
     nu = zeros(q*M*(M-1)/2,1);
-    tic;
     k = 0;
     converge = true;
     while true
@@ -157,7 +156,6 @@ for lambda = lambda_full
             break;
         end
     end
-    timecost_t = toc;
     if converge
         fprintf('k=%d, converged.\n', k);
         beta_t = beta_k;
@@ -192,14 +190,16 @@ for lambda = lambda_full
         beta = beta_t';
         theta = theta_t;
         alpha = alpha_t;
-        timecost(2) = timecost_t;
 %         best_lambda = lambda;
         S = S_t;
     end
 
 end
+timecost(2) = toc;
 % fprintf('Best Lambda: %.4f\n', best_lambda);
 % fprintf('Step 2 done. Time cost: %.6fs\n', timecost(2));
+
+
 
 subgroup = cell(1,S);
 for s=1:S

@@ -11,7 +11,7 @@ for i=1:M
 end
 N = sum(n);
 % fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
-if nargin<56 % calculating theta_check, W
+if nargin<5 % calculating theta_check, W
     % fprintf('Calculating W_i..\n');
     W = cell(1,M);
     big_Z = zeros(sum(n), M*q);
@@ -54,17 +54,16 @@ end
 % BIC tuning
 min_BIC = Inf;
 % fprintf('Step 3: K-means\n');
-timecost_full = zeros(3,10);
 long_Y = zeros(sum(n),1);
 for i=1:M
     long_Y(1+sum(n(1:i-1)):sum(n(1:i))) = Y{i};
 end
 theta_K = zeros(M, q);
 
+tic;
 for K=1:10
     % initial
 %     fprintf('K = %d\n',K);
-    tic;
     centroids = theta_check(randperm(M,K),:);
     subgroup = zeros(1,M);
     dist = zeros(1,K);
@@ -95,7 +94,6 @@ for K=1:10
             [~, subgroup(m)] = min(dist);
         end
     end
-    timecost_full(1,K) = toc;
     
     % translate the subgroups
     
@@ -106,7 +104,6 @@ for K=1:10
         subgroup_K{k} = index(subgroup==k);
     end
     subgroup_K(cellfun(@isempty,subgroup_K))=[];
-    timecost_full(2,K) = toc;
     
 
 
@@ -134,7 +131,6 @@ for K=1:10
             theta_K(i,:) = alpha_K(s,:);
         end
     end
-    timecost_full(3,K) = toc;
     
     BIC = bic(X, Y, Z, beta_K', theta_K, K);
 %     fprintf('BIC: %.4f\n', BIC);
@@ -143,13 +139,11 @@ for K=1:10
         beta = beta_K;
         theta = theta_K;
         alpha = alpha_K;
-        timecost(2) = sum(timecost_full(:,K));
-        best_K = K;
         min_BIC = BIC;
     end
 
 end
-
+timecost(2) = toc;
 
 subgroup = subgroup_best;
 BIC = min_BIC;
