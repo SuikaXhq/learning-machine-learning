@@ -1,4 +1,4 @@
-function [beta, alpha, theta, subgroup, timecost, lambda_full, BIC_full, subgroup_full] = cd_fusion(X, Z, Y, beta_check, theta_check, W)
+function [beta, alpha, theta, subgroup, timecost, lambda_full] = cd_fusion(X, Z, Y, beta_check, theta_check, W)
 %% Initialize
 % fprintf('Initializing..\n');
 epsilon = 1e-6;
@@ -96,9 +96,7 @@ delta = B'*bigTheta;
 
 t=0;
 max_lambda = 10*norm(delta)/M/(M-1)*2;
-lambda_full = 0:0.05*max_lambda:max_lambda;
-BIC_full = zeros(1,21);
-subgroup_full = cell(1,21);
+lambda_full = 0:0.1*max_lambda:max_lambda;
 tic;
 for lambda = lambda_full
     t = t+1;
@@ -165,7 +163,6 @@ for lambda = lambda_full
         S_t = size(alpha_t,1);
     %     fprintf('Estimated S: %d\n', S_t);
         BIC = bic(X, Y, Z, beta_t', theta_t, S_t);
-        BIC_full(t) = BIC;
     %     fprintf('BIC: %.4f\n', BIC);
 
 %         subgroup_t = cell(1,S_t);
