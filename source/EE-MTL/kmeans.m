@@ -99,7 +99,6 @@ for K=1:10
     
     index = 1:M;
     subgroup_K = cell(1,K);
-    tic;
     for k=1:K
         subgroup_K{k} = index(subgroup==k);
     end
@@ -109,7 +108,6 @@ for K=1:10
 
 
     %% Calculate beta and alpha
-    tic;
     S = size(subgroup_K, 2);
     G = zeros(sum(n), p+S*q);
     for s=1:S
