@@ -96,7 +96,7 @@ delta = B'*bigTheta;
 
 t=0;
 max_lambda = 10*norm(delta)/M/(M-1)*2;
-lambda_full = 0:0.1*max_lambda:max_lambda;
+lambda_full = 0:0.2*max_lambda:max_lambda;
 tic;
 for lambda = lambda_full
     t = t+1;

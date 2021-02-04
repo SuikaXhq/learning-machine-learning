@@ -5,17 +5,17 @@ fclose(file);
 
 fprintf('Simulated Data Experiments(CD):\n');
 for case_number = [1:18]
-S_est_full = zeros(1,100);
-timecost_full = zeros(1,100);
-NMI_full = zeros(1,100);
-perfect_full = zeros(1,100);
-subgroup_est = cell(1,100);
+S_est_full = zeros(1,3);
+timecost_full = zeros(1,3);
+NMI_full = zeros(1,3);
+perfect_full = zeros(1,3);
+subgroup_est = cell(1,3);
 
 load(sprintf('data/Case%d.mat', case_number));
-for j = 1:10
+for j = 1:3
     load(sprintf('data/Case%d_Rep%d_unit_GLS.mat', case_number, j));
     fprintf('Method: CD, Case: %d, Replicate: %d\n', case_number, j);
-    [~, ~, ~, subgroup_est{j}, timecost_full(j)] = cd_fusion(X_full{j}, Z_full{j}, Y_full{j}, beta_U, theta_U, W);
+    [~, ~, ~, subgroup_est{j}, timecost_full(j), ~] = cd_fusion(X_full{j}, Z_full{j}, Y_full{j}, beta_U, theta_U, W);
     S_est_full(j) = size(subgroup_est{j},2);
     [NMI_full(j), perfect_full(j)] = nmi(subgroup_full{j}, subgroup_est{j});
     fprintf('S: %d, NMI: %.4f.', S_est_full(j), NMI_full(j));
