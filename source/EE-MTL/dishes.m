@@ -31,7 +31,7 @@ end
 if nargin < 6 % calculating theta_U, W, Sigma_big
     %fprintf('Calculating W_i..\n');
     W = cell(1,M);
-    big_Z = zeros(sum(n), M*q);
+    big_Z = sparse(sum(n), M*q);
     long_Z = zeros(sum(n), q);
     long_X = zeros(sum(n), p);
     long_Y = zeros(sum(n),1);
