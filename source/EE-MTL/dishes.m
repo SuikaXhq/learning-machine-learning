@@ -31,7 +31,7 @@ end
 if nargin < 6 % calculating theta_U, W, Sigma_big
     %fprintf('Calculating W_i..\n');
     W = cell(1,M);
-    big_Z = sparse(sum(n), M*q);
+    big_Z = zeros(sum(n), M*q);
     long_Z = zeros(sum(n), q);
     long_X = zeros(sum(n), p);
     long_Y = zeros(sum(n),1);
@@ -132,8 +132,8 @@ end
 W{1} = sparse(W{1});
 W_big = blkdiag(W{:});
 estimate = (G'*W_big*G) \ G'*W_big*long_Y;
-beta = estimate(1:q);
-alpha = reshape(estimate(q+1:end), q,S);
+beta = estimate(1:p);
+alpha = reshape(estimate(p+1:end), q,S);
 alpha = alpha';
 for s=1:S
     for i=subgroup{s}
