@@ -1,10 +1,11 @@
-function [beta, alpha, theta, subgroup, timecost] = dishes(X, Z, Y, theta_U, W, Sigma_big)
+function [beta, alpha, theta, subgroup, timecost] = dishes(X, Z, Y, nu, theta_U, W, Sigma_big)
 % DISHES
 
 % Input:
 % X: 1xM Cell with n_i x p Matrix contents
 % Z: 1xM Cell with n_i x q Matrix contents
 % y: 1xM Cell with n_i-d Vector contents
+% nu: scalar, default=0.01, optional
 % theta_U: Mxq matrix, unit GLS estimates, optional
 % W: 1xM Cell, each element contains nxn matrix as W_i, optional
 % Sigma_big: 1xM Cell, each element contains (p+q)x(p+q) matrix as [(X_i,Z_i)'*W_i*(X_i,Z_i)]^{-1}, optional
@@ -27,8 +28,10 @@ for i=1:M
     n(i) = size(X{i},1);
 end
 %fprintf('M = %d, p = %d, q = %d, N = %d\n', M, p, q, sum(n(:)));
-
-if nargin < 6 % calculating theta_U, W, Sigma_big
+if nargin < 4
+    nu = 0.01;
+end
+if nargin < 7 % calculating theta_U, W, Sigma_big
     %fprintf('Calculating W_i..\n');
     W = cell(1,M);
     big_Z = zeros(sum(n), M*q);
@@ -89,7 +92,7 @@ for i=1:M
     subgroup{i} = i;
     delta_MU(i,i) = Inf;
 end
-lambda = chi2inv(0.99, q);
+lambda = chi2inv(1-nu, q);
 for i=1:M
     if min(delta_MU, [], 'all')>lambda
         break;
