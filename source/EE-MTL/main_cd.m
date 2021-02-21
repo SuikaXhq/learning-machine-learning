@@ -1,25 +1,25 @@
 clear;
 file = fopen('results/Report_cd.csv','w');
-fprintf(file, 'Case,Timecost,S_mean,S_std,NMI,Perfect_recover,RMSE_beta,RMSE_beta_std,RMSE_theta,RMSE_theta_std,Error,Error_std\n');
+fprintf(file, 'Case,Timecost,S_mean,S_std,NMI,Perfect_recover,RMSE_beta,RMSE_beta_std,RMSE_theta,RMSE_theta_std,Error,Error_std,Replicates\n');
 fclose(file);
 
 fprintf('Simulated Data Experiments(CD):\n');
-for case_number = [1:18]
+for case_number = [1:3, 7:15]
 % for case_number = 0  % Demo
-S_est_full = zeros(1,3);
-timecost_full = zeros(1,3);
-NMI_full = zeros(1,3);
-perfect_full = zeros(1,3);
-subgroup_est = cell(1,3);
-beta_est_full = cell(1,100);
-alpha_est_full = cell(1,100);
-theta_est_full = cell(1,100);
-RMSE_beta_full = zeros(1,100);
-RMSE_theta_full = zeros(1,100);
-error_full = zeros(1,100);
+S_est_full = zeros(1,10);
+timecost_full = zeros(1,10;
+NMI_full = zeros(1,10);
+perfect_full = zeros(1,10);
+subgroup_est = cell(1,10);
+beta_est_full = cell(1,10);
+alpha_est_full = cell(1,10);
+theta_est_full = cell(1,10);
+RMSE_beta_full = zeros(1,10);
+RMSE_theta_full = zeros(1,10);
+error_full = zeros(1,10);
 
 load(sprintf('data/Case%d.mat', case_number));
-for j = 1:3
+for j = 1:10
     load(sprintf('data/Case%d_Rep%d_unit_GLS.mat', case_number, j));
     fprintf('Method: CD, Case: %d, Replicate: %d\n', case_number, j);
     [beta_est_full{j}, alpha_est_full{j}, theta_est_full{j}, subgroup_est{j}, timecost_full(j), ~] = cd_fusion(X_full{j}, Z_full{j}, Y_full{j}, beta_U, theta_U, W);
@@ -48,7 +48,7 @@ error_est = mean(error_full);
 error_std = std(error_full);
 
 file = fopen('results/Report_cd.csv','a');
-fprintf(file, sprintf('%d,%.6f,%.2f,%.2f,%.6f,%.4f,%.6f,%.6f,%.6f,%.6f,%.4f,%.4f\n', case_number, timecost, S_mean, S_std, NMI, perfect_recover, RMSE_beta, RMSE_beta_std, RMSE_theta, RMSE_theta_std, error_est, error_std));
+fprintf(file, sprintf('%d,%.6f,%.2f,%.2f,%.6f,%.4f,%.6f,%.6f,%.6f,%.6f,%.4f,%.4f,%d\n', case_number, timecost, S_mean, S_std, NMI, perfect_recover, RMSE_beta, RMSE_beta_std, RMSE_theta, RMSE_theta_std, error_est, error_std, 10));
 fclose(file);
 save(sprintf('results/Case%d_cd.mat', case_number), 'beta_full', 'alpha_full', 'theta_full', 'S_est_full','timecost_full','NMI_full','perfect_full','subgroup_est', '-v7.3');
 clear -regexp *_full;
