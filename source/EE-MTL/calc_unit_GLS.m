@@ -1,4 +1,7 @@
 for case_number = 1:18
+    if demo==true
+        case_number=0;
+    end
     load(sprintf('data/Case%d.mat', case_number));
     fprintf('Calculating unit GLS for Case %d...\n', case_number);
     M = size(X_full{1},2);
@@ -45,5 +48,9 @@ for case_number = 1:18
             theta_U(i,:) = unit_GLS(p+1:end);
         end
         save(sprintf('data/Case%d_Rep%d_unit_GLS.mat', case_number, j), 'theta_U', 'beta_U', 'Sigma_big', 'W', '-v7.3');
+    end
+    
+    if demo==true
+        return;
     end
 end

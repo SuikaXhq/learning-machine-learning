@@ -4,6 +4,9 @@ X_full = cell(1,100);
 Z_full = cell(1,100);
 Y_full = cell(1,100);
 subgroup_full = cell(1,100);
+beta_full = cell(1,100);
+alpha_full = cell(1,100);
+theta_full = cell(1,100);
 
 for k=1:100
 X = cell(1,M);
@@ -12,6 +15,7 @@ Y = cell(1,M);
 
 %% Effects
 beta_0 = rand(1,p)*4 - 2;
+beta_full{k} = beta_0;
 alpha_01 = (-1:2/(S-1):1)*(S^1.4/2);
 if mod(S,2)==1
     alpha_01 = alpha_01 +1;
@@ -21,6 +25,7 @@ alpha_0(:,1) = alpha_01;
 for j=2:q
     alpha_0(:,j) = alpha_0([end, 1:end-1],j-1);
 end
+alpha_full{k} = alpha_0;
 
 u = zeros(M, q);
 for j=1:M
@@ -41,6 +46,7 @@ for s=1:S
     theta_0(offset:offset+M_s(s)-1, :) = alpha_0(s*ones(M_s(s),1), :);
     offset = offset + M_s(s);
 end
+theta_full{k} = theta_0;
 
 %% Data
 for i=1:M
@@ -63,7 +69,7 @@ subgroup_full{k} = subgroup;
 end
 
 %% Save
-save(sprintf('data/Case%d.mat', case_number), 'X_full','Z_full','Y_full','subgroup_full', '-v7.3');
+save(sprintf('data/Case%d.mat', case_number), 'X_full','Z_full','Y_full','subgroup_full', 'beta_full', 'alpha_full', 'theta_full', '-v7.3');
 
 
 end

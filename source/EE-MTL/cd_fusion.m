@@ -184,7 +184,7 @@ for lambda = lambda_full
 
     if BIC<min_BIC
         min_BIC = BIC;
-        beta = beta_t';
+        beta = beta_t;
         theta = theta_t;
         alpha = alpha_t;
 %         best_lambda = lambda;

@@ -1,3 +1,9 @@
+if demo==true
+    fprintf('Generating data for demo case, 100 replicates.\n');
+    generate_data(10,2,10,3,3,0);
+    return;
+end
+
 for case_number = 1:18
 
 n = [100
