@@ -18,15 +18,9 @@ subgroup_est = [subgroup_est, cell(1,10)];
 beta_est_full = [beta_est_full, cell(1,10)];
 alpha_est_full = [alpha_est_full, cell(1,10)];
 theta_est_full = [theta_est_full, cell(1,10)];
-RMSE_beta_full = zeros(1,pre_reps+10);
-RMSE_theta_full = zeros(1,pre_reps+10);
-error_full = zeros(1,pre_reps+10);
-
-for j=1:pre_reps
-    RMSE_beta_full(j) = rmse(beta_est_full{j}, beta_full{j});
-    RMSE_theta_full(j) = rmse(theta_est_full{j}, theta_full{j});
-    error_full(j) = pred_err(X_full{j}, Z_full{j}, Y_full{j}, beta_est_full{j}, theta_est_full{j});
-end
+RMSE_beta_full = [RMSE_beta_full, zeros(1,10)];
+RMSE_theta_full = [RMSE_theta_full, zeros(1,10)];
+error_full = [error_full, zeros(1,10)];
 
 for j = pre_reps+1:pre_reps+10
     load(sprintf('data/Case%d_Rep%d_unit_GLS.mat', case_number, j));
@@ -59,6 +53,6 @@ error_std = std(error_full);
 file = fopen('results/Report_cd.csv','a');
 fprintf(file, sprintf('%d,%.6f,%.2f,%.2f,%.6f,%.4f,%.6f,%.6f,%.6f,%.6f,%.4f,%.4f,%d\n', case_number, timecost, S_mean, S_std, NMI, perfect_recover, RMSE_beta, RMSE_beta_std, RMSE_theta, RMSE_theta_std, error_est, error_std, pre_reps+10));
 fclose(file);
-save(sprintf('results/Case%d_cd.mat', case_number), 'beta_full', 'alpha_full', 'theta_full', 'S_est_full','timecost_full','NMI_full','perfect_full','subgroup_est', '-v7.3');
+save(sprintf('results/Case%d_cd.mat', case_number), 'RMSE_beta_full', 'RMSE_alpha_full', 'RMSE_theta_full', 'error_full', 'beta_est_full', 'alpha_est_full', 'theta_est_full', 'S_est_full','timecost_full','NMI_full','perfect_full','subgroup_est', '-v7.3');
 clear -regexp *_full;
 end

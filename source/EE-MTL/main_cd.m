@@ -50,6 +50,6 @@ error_std = std(error_full);
 file = fopen('results/Report_cd.csv','a');
 fprintf(file, sprintf('%d,%.6f,%.2f,%.2f,%.6f,%.4f,%.6f,%.6f,%.6f,%.6f,%.4f,%.4f,%d\n', case_number, timecost, S_mean, S_std, NMI, perfect_recover, RMSE_beta, RMSE_beta_std, RMSE_theta, RMSE_theta_std, error_est, error_std, 10));
 fclose(file);
-save(sprintf('results/Case%d_cd.mat', case_number), 'beta_full', 'alpha_full', 'theta_full', 'S_est_full','timecost_full','NMI_full','perfect_full','subgroup_est', '-v7.3');
+save(sprintf('results/Case%d_cd.mat', case_number), 'RMSE_beta_full', 'RMSE_alpha_full', 'RMSE_theta_full', 'error_full', 'beta_est_full', 'alpha_est_full', 'theta_est_full', 'S_est_full','timecost_full','NMI_full','perfect_full','subgroup_est', '-v7.3');
 clear -regexp *_full;
 end
