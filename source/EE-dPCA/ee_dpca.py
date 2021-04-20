@@ -13,6 +13,7 @@ import multiprocessing
 from sklearn.utils.extmath import randomized_svd
 # from pathos.multiprocessing import ProcessingPoll as Pool
 import pathos
+import math
 
 # print(sys.path)
 sys.path.append('./dPCA');
@@ -269,7 +270,7 @@ class EE_dPCA(BaseEstimator):
 
         return scores
     
-    def cross_validation(self,X,trialX,center=True, lams='auto',taus='auto'):
+    def cross_validation(self,X,trialX, mXs, pinvX,center=True, lams='auto',taus='auto'):
 
         temp_1 = time.time()        
         if center:
@@ -280,18 +281,26 @@ class EE_dPCA(BaseEstimator):
         # compute variance of data
         varX = np.sum(X**2)
 
+        # compute parameter range
+        thetas = np.stack([mX @ pinvX for mX in mXs.values()])
+        max_lamb = np.max(np.abs(thetas))
+        max_tau = np.max(np.linalg.svd(thetas, full_matrices=False, compute_uv=False))
+        base = 1.6
+
         # test different inits and regularization parameters
         if lams == 'auto':
 
             print('start cross-val to get best lams')
-            N = 5
+            N = 6
+            lams = np.linspace(0, max_lamb, num=N)[1:]
             # lams = np.logspace(0,N,num=N, base=1.4, endpoint=False)*1e-5
-            lams = np.logspace(0,10,num=N, base=1.6, endpoint=False)*1e-5
+            # lams = np.logspace(0,math.log(max_lamb, base=base),num=N, base=base, endpoint=True)
 
         if taus == 'auto':
-            N = 5
+            N = 6
+            taus = np.linspace(0, max_tau, num=N)[1:]
             # taus = np.logspace(0,N,num=N, base=1.4, endpoint=False)*1e-5
-            taus = np.logspace(0,10,num=N, base=1.6, endpoint=False)*1e-5
+            # taus = np.logspace(0,10,num=N, base=base, endpoint=True)
 
 
         # compute crossvalidated score over n_trials repetitions
@@ -400,54 +409,31 @@ class EE_dPCA(BaseEstimator):
         # print(S_lamb)
         return np.array(S_lamb)
 
-    def prox_nuclear_norm(self, W, theta_hat, lamb):
+    def prox_2(self, W, theta_hat, lamb):
         # print('W.shape:',W.shape)
         # print('theta_hat.shape:',theta_hat.shape)
-        neg_lamb = -lamb
+        theta_plus = theta_hat + lamb
+        theta_minus = theta_hat - lamb
         # print(neg_lamb)
-        result = theta_hat
-        result[W > lamb + theta_hat] = theta_hat[W > lamb + theta_hat] + lamb
-        result[W < neg_lamb + theta_hat] = theta_hat[W < neg_lamb + theta_hat] - lamb
+        result = W
+        result[W > theta_plus] = theta_plus[W > theta_plus]
+        result[W < theta_minus] = theta_minus[W < theta_minus]
         return result
 
     def prox_3(self, W, tau):
-        # U, sigma, VT = randomized_svd(W, num_components, n_iter=self.n_iter, random_state=np.random.randint(10e5))
-        U, sigma, VT = np.linalg.svd(W)
+        U, sigma, VT = np.linalg.svd(W, full_matrices=False)
 
-        Sigma = np.zeros((U.shape[1],U.shape[1]))
-        row, col = np.diag_indices_from(Sigma)
-        Sigma[row,col] = sigma
-
-        # print('U.shape[1]',U.shape[1],'Sigma.shape[0]:',Sigma.shape[0])
-        # print('prox_3-Sigma:',Sigma)
-        S_tau = self.softhreshold(Sigma, tau)
-        # print('prox_3-S_tau:', S_tau)
-        temp1 = np.dot(U, S_tau)
-        prox_W = np.dot(temp1, VT)
-        return prox_W
+        S_tau = self.softhreshold(sigma, tau)
+        return (U * S_tau) @ VT
 
     def prox_4(self, W, tau, theta_hat):
-        U, sigma, VT = np.linalg.svd(W - theta_hat)
+        U, sigma, VT = np.linalg.svd(W - theta_hat, full_matrices=False)
 
-        Sigma = np.zeros((U.shape[1],U.shape[1]))
-        row, col = np.diag_indices_from(Sigma)
-        Sigma[row,col] = sigma
-
-        # print('U.shape[1]',U.shape[1],'Sigma.shape[0]:',Sigma.shape[0])
-
-        S_tau = self.softhreshold(Sigma, tau)
-        # print('Sigma:',Sigma)
-        # print('S_tau:', S_tau)
-        temp1 = np.dot(U, S_tau)
-        temp2 = np.dot(temp1, VT)
-
-        if np.max(sigma) > tau:
-            # print('max(sigma)', np.max(sigma))
-            result = temp2 + theta_hat
-        else:
-            result = theta_hat
-
-        return result
+        if sigma[0] <= tau: # sigma[0] == max(sigma)
+            return W
+        
+        sigma[sigma>tau] = tau
+        return theta_hat + (U * sigma) @ VT
 
     def pca(self, mat,k):
         e_vals,e_vecs = np.linalg.eig(mat)
@@ -491,7 +477,7 @@ class EE_dPCA(BaseEstimator):
                 # print(type(lamb))
                 # a_1 = pool.starmap(self.softhreshold,zip(W_1,[4 * lamb]))
 
-                a_2 = self.prox_nuclear_norm(W_2, theta_hat, lamb)
+                a_2 = self.prox_2(W_2, theta_hat, lamb)
                 # a_2 = pool.map(self.prox_nuclear_norm, W_2, theta_hat, lamb)
 
                 a_3 = self.prox_3(W_3, 4 * tau)
@@ -769,7 +755,7 @@ class EE_dPCA(BaseEstimator):
 
         return trialX
 
-    def _fit(self, X, trialX=None, mXs=None, center=True, SVD=None, optimize=True,cross=False,hypers=None):
+    def _fit(self, X, trialX=None, mXs=None, center=True, SVD=None, optimize=True,cross=True,hypers=None):
 
         def flat2d(A):
             return A.reshape((A.shape[0], -1))
@@ -788,8 +774,7 @@ class EE_dPCA(BaseEstimator):
             self.Xmargs = mXs
             # print('original mX.shape', mXs.shape)
 
-        if self.cross_flag and cross:
-            self.cross_validation(X,trialX)
+        
 
         if self.opt_regularizer_flag and optimize:
             if self.debug > 0:
@@ -809,6 +794,9 @@ class EE_dPCA(BaseEstimator):
             # print('pregX',pregX)
         
         # time_1 = time.time()
+
+        if self.cross_flag and cross:
+            self.cross_validation(X,trialX, mXs=regmXs, pinvX = pregX)
 
         print('lambda',self.hyper_lamb, 'tau',self.hyper_tau)
 

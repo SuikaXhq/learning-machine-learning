@@ -1,5 +1,6 @@
 import numpy as np
 import os 
+import settings
 
 def generate_data(N, P, T, S, D, sparsity):
     # generate x_s
@@ -31,26 +32,17 @@ def generate_data(N, P, T, S, D, sparsity):
     X[:, t_support_set, :, :, :] += x_t_latent.T[None, :, None, None, :]
     X[:, d_support_set, :, :, :] += x_d_latent.T[None, :, None, :, None]
 
-    X_m = np.zeros([P, S, D, T])
-    X_s = X_m[s_support_set, :, :, :] + x_s_latent.T[:, :, None, None]
-    X_d = X_m[d_support_set, :, :, :] + x_d_latent.T[:, None, :, None]
-    X_t = X_m[t_support_set, :, :, :] + x_t_latent.T[:, None, None, :]
+    X_s = np.zeros([P, S, D, T])
+    X_d = np.zeros([P, S, D, T])
+    X_t = np.zeros([P, S, D, T])
+    X_s[s_support_set, :, :, :] += x_s_latent.T[:, :, None, None]
+    X_d[d_support_set, :, :, :] += x_d_latent.T[:, None, :, None]
+    X_t[t_support_set, :, :, :] += x_t_latent.T[:, None, None, :]
 
-    np.save('simulation/data/Data_N{}_P{}_S{}_D{}_T{}_s{}.npy'.format(N, P, S, D, T, sparsity), X)
-    np.save('simulation/data/X_s_P{}_S{}_D{}_T{}_s{}.npy'.format(P, S, D, T, sparsity), X_s)
-    np.save('simulation/data/X_d_P{}_S{}_D{}_T{}_s{}.npy'.format(P, S, D, T, sparsity), X_d)
-    np.save('simulation/data/X_t_P{}_S{}_D{}_T{}_s{}.npy'.format(P, S, D, T, sparsity), X_t)
+    if not os.path.exists('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}'.format(N, P, S, D, T, sparsity)): os.mkdir('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}'.format(N, P, S, D, T, sparsity))
+    np.save('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/Data.npy'.format(N, P, S, D, T, sparsity), X)
+    np.save('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_s.npy'.format(N, P, S, D, T, sparsity), X_s)
+    np.save('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_d.npy'.format(N, P, S, D, T, sparsity), X_d)
+    np.save('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_t.npy'.format(N, P, S, D, T, sparsity), X_t)
 
-n_trials = 10
-P = [100, 200, 300, 400, 500, 600]
-T = [150, 250, 350, 450, 550, 650]
-S = 6
-D = 4
-sparsity = [0, 0.2, 0.4, 0.6, 0.8]
-
-for i in range(5):
-    generate_data(n_trials, P[2], T[2], S, D, sparsity[i])
-for j in [0,1,3,4,5]:
-    generate_data(n_trials, P[j], T[2], S, D, sparsity[4])
-    generate_data(n_trials, P[2], T[j], S, D, sparsity[4])
-
+settings.traverse(generate_data)
