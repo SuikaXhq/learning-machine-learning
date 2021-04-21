@@ -806,7 +806,9 @@ class EE_dPCA(BaseEstimator):
 
 
         # lambda = 0.1, tau = 0.1, T = 10, ru = 1
+        start = time.time()
         self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 100, ru = self.rho)
+        self.runtimecost = time.time() - start
 
     def transform(self, X, marginalization=None):
         X = self._zero_mean(X)

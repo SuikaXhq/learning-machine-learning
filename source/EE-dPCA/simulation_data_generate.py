@@ -15,7 +15,7 @@ def generate_data(N, P, T, S, D, sparsity):
     
     # generate x_t
     t_support_set = np.random.choice(np.arange(P), latent_P, replace=False)
-    x_t_0 = np.arange(T)*3
+    x_t_0 = np.arange(T)/(T-1)*10
     x_t_latent = np.random.randn(latent_P)[None, :] * x_t_0[:, None]
 
     # generate x_d

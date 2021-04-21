@@ -623,7 +623,9 @@ class dPCA(BaseEstimator):
         # print('regX',regX)
 
         # compute closed-form solution
+        start = time.time()
         self.P, self.D = self._randomized_dpca(regX,regmXs,pinvX=pregX)
+        self.runtimecost = time.time() - start
         # print(self.P['t'])
 
     def _zero_mean(self,X):

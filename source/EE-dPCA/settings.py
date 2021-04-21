@@ -2,10 +2,10 @@ def get_P():
     return [100, 200, 300, 400, 500, 600]
 
 def get_T():
-    return [150, 250, 350, 450, 550, 650]
+    return 150
 
 def get_S():
-    return 6
+    return [6, 12, 18, 24, 30, 36]
 
 def get_D():
     return 4
@@ -24,7 +24,8 @@ def traverse(func, *args, **kwargs):
     D = get_D()
     sparsity = get_sparsity()
     for i in range(5):
-        func(n_trials, P[2], T[2], S, D, sparsity[i], *args, **kwargs)
+        func(n_trials, P[2], T, S[0], D, sparsity[i], *args, **kwargs)
     for j in [0,1,3,4,5]:
-        func(n_trials, P[j], T[2], S, D, sparsity[4], *args, **kwargs)
-        func(n_trials, P[2], T[j], S, D, sparsity[4], *args, **kwargs)
+        func(n_trials, P[j], T, S[0], D, sparsity[4], *args, **kwargs)
+    for k in [1,2,3,4,5]:
+        func(n_trials, P[2], T, S[k], D, sparsity[4], *args, **kwargs)

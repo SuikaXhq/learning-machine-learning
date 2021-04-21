@@ -38,21 +38,18 @@ def simulation(N, P, T, S, D, sparsity):
     print('SPCA time cost: {}'.format(timecost[1]))
 
     print('Start dPCA...')
-    start = time.time()
     Xt_dpca = dpca.fit_transform(X, trialX) # (q, S, D, T)  
-    timecost[2] = time.time() - start
+    timecost[2] = dpca.runtimecost
     print('dPCA time cost: {}'.format(timecost[2]))
 
     print('Start L2_dPCA...')
-    start = time.time()
     Xt_l2_dpca = l2_dpca.fit_transform(X, trialX) # (q, S, D, T)
-    timecost[3] = time.time() - start
+    timecost[3] = l2_dpca.runtimecost
     print('L2_dPCA time cost: {}'.format(timecost[3]))
     
     print('Start EE-dPCA...')
-    start = time.time()
     Xt_eedpca = eedpca.fit_transform(X, trialX) # (q, S, D, T)
-    timecost[4] = time.time() - start
+    timecost[4] = eedpca.runtimecost
     print('EE-dPCA time cost: {}'.format(timecost[4]))
 
     D_pca = pca.components_.T # (P, q)

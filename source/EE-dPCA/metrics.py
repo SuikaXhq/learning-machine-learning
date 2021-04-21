@@ -3,6 +3,7 @@ import pandas as pd
 import settings
 from explained_variance import explained_variance
 import ee_dpca
+import os
 
 flags = input('Type in flags for matric collecting ([111]): ')
 if flags=='': flags='111'
@@ -17,21 +18,21 @@ names = ['PCA', 'SPCA', 'dPCA', 'L2_dPCA', 'EE-dPCA']
 
 # collect time
 if flags[0]=='1':
-    time = {name: {'sparse': [], 'P': [], 'T': []} for name in names}
+    time = {name: {'sparse': [], 'P': [], 'S': []} for name in names}
     for i in range(len(sparsity)):
-        time_single = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/timecost.npy'.format(N, P[2], S, D, T[2], sparsity[i]))
+        time_single = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/timecost.npy'.format(N, P[2], S[0], D, T, sparsity[i]))
         for j in range(len(names)):
             time[names[j]]['sparse'].append(time_single[j])
 
     for i in range(len(P)):
-        time_single = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/timecost.npy'.format(N, P[i], S, D, T[2], sparsity[4]))
+        time_single = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/timecost.npy'.format(N, P[i], S[0], D, T, sparsity[4]))
         for j in range(len(names)):
             time[names[j]]['P'].append(time_single[j])
 
-    for i in range(len(T)):
-        time_single = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/timecost.npy'.format(N, P[2], S, D, T[i], sparsity[4]))
+    for i in range(len(S)):
+        time_single = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/timecost.npy'.format(N, P[2], S[i], D, T, sparsity[4]))
         for j in range(len(names)):
-            time[names[j]]['T'].append(time_single[j])
+            time[names[j]]['S'].append(time_single[j])
 
     np.save('simulation/metrics/time.npy', time)
 
@@ -132,6 +133,7 @@ if flags[2]=='1':
         result_spca = explained_variance(F_spca, Xt_spca, X)
         result_eedpca = explained_variance(F_eedpca, Xt_eedpca, X, D=D_eedpca, mXs=mXs)
 
+        if not os.path.exists('simulation/metrics/N{}_P{}_S{}_D{}_T{}_s{}'.format(N, P, S, D, T, sparsity)): os.mkdir('simulation/metrics/N{}_P{}_S{}_D{}_T{}_s{}'.format(N, P, S, D, T, sparsity))
         np.save('simulation/metrics/N{}_P{}_S{}_D{}_T{}_s{}/EV_pca.npy'.format(N, P, S, D, T, sparsity), result_pca)
         np.save('simulation/metrics/N{}_P{}_S{}_D{}_T{}_s{}/EV_dpca.npy'.format(N, P, S, D, T, sparsity), result_dpca)
         np.save('simulation/metrics/N{}_P{}_S{}_D{}_T{}_s{}/EV_l2dpca.npy'.format(N, P, S, D, T, sparsity), result_l2dpca)
