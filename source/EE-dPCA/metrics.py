@@ -144,7 +144,7 @@ def metric(flags='111'):
             np.save('simulation/metrics/N{}_P{}_S{}_D{}_T{}_s{}/EV_eedpca.npy'.format(N, P, S, D, T, sparsity), result_eedpca)
 
         settings.traverse(calculate_EV)
-        print('Done.')
+    print('Done.')
 
 
 if __name__ == '__main__':

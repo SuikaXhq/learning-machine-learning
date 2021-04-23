@@ -282,9 +282,9 @@ class EE_dPCA(BaseEstimator):
         varX = np.sum(X**2)
 
         # compute parameter range
-        thetas = np.stack([mX @ pinvX for mX in mXs.values()])
-        max_lamb = np.max(np.abs(thetas))
-        max_tau = np.max(np.linalg.svd(thetas, full_matrices=False, compute_uv=False))
+        thetas = {key: mX @ pinvX for key,mX in mXs.items()}
+        max_lamb = {key:np.max(np.abs(thetas[key])) for key in thetas.keys()}
+        max_tau = {key:np.max(np.linalg.svd(thetas[key], full_matrices=False, compute_uv=False)) for key in thetas.keys()}
         base = 1.6
 
         # test different inits and regularization parameters
@@ -292,13 +292,13 @@ class EE_dPCA(BaseEstimator):
 
             print('start cross-val to get best lams')
             N = 6
-            lams = np.linspace(0, max_lamb, num=N)[1:]
+            lams = {key:np.linspace(0, max_lamb[key]/4, num=N)[1:] for key in max_lamb.keys()}
             # lams = np.logspace(0,N,num=N, base=1.4, endpoint=False)*1e-5
             # lams = np.logspace(0,math.log(max_lamb, base=base),num=N, base=base, endpoint=True)
 
         if taus == 'auto':
             N = 6
-            taus = np.linspace(0, max_tau, num=N)[1:]
+            taus = {key:np.linspace(0, max_tau[key]/4, num=N)[1:] for key in max_tau.keys()}
             # taus = np.logspace(0,N,num=N, base=1.4, endpoint=False)*1e-5
             # taus = np.logspace(0,10,num=N, base=base, endpoint=True)
 
@@ -323,8 +323,8 @@ class EE_dPCA(BaseEstimator):
         self.hyper_tau = {}
         for key in scores.keys():
             pos = np.unravel_index(np.argmin(scores[key]),scores[key].shape)
-            self.hyper_lamb[key] = lams[pos[0]]
-            self.hyper_tau[key] = taus[pos[1]]
+            self.hyper_lamb[key] = lams[key][pos[0]]
+            self.hyper_tau[key] = taus[key][pos[1]]
 
         print('best lambda,tau = ',self.hyper_lamb,self.hyper_tau)
 
@@ -338,21 +338,20 @@ class EE_dPCA(BaseEstimator):
     
     def cal_score(self,lams,taus,X,trialX,mean=True):
         # placeholder for scores
-        scores = np.zeros((len(lams),len(taus))) if mean else {key : np.zeros((len(lams),len(taus))) for key in list(self.marginalizations.keys())}
+        scores = np.zeros((len(lams[list(lams.keys())[0]]),len(taus[list(taus.keys())[0]]))) if mean else {key : np.zeros((len(lams[list(lams.keys())[0]]),len(taus[list(taus.keys())[0]]))) for key in list(self.marginalizations.keys())}
         XmXs = self._marginalize(X)
-        for k, lam in enumerate(lams):
-            for p, tau in enumerate(taus):
-                # fit dpca model
-                self.hyper_lamb = lam
-                self.hyper_tau = tau
-                self._fit(X,mXs=XmXs,optimize=False,cross=False)
-                # compute crossvalidation score
-                if mean:
-                    scores[k, p] = self._score(X,XmXs)
-                else:
-                    tmp = self._score(X,XmXs,mean=False)
-                    for key in list(self.marginalizations.keys()):
-                        scores[key][k,p] = tmp[key]
+        for key in lams.keys():
+            for k, lam in enumerate(lams[key]):
+                for p, tau in enumerate(taus[key]):
+                    # fit dpca model
+                    self.hyper_lamb = lam
+                    self.hyper_tau = tau
+                    self._fit(X,mXs=XmXs,optimize=False,cross=False, marginalize=key)
+                    # compute crossvalidation score
+                    if mean:
+                        scores[k, p] = self._score(X,XmXs)
+                    else:
+                        scores[key][k,p] = self._score(X,XmXs,mean=False, marginalize=key)
         '''scores = np.zeros((self.n_tri,len(lams),len(taus))) if mean else {key : np.zeros((self.n_tri,len(lams),len(taus))) for key in list(self.marginalizations.keys())}
         
 
@@ -390,19 +389,26 @@ class EE_dPCA(BaseEstimator):
 
         return scores
 
-    def _score(self,X,mXs,mean=True):
+    def _score(self,X,mXs,mean=True,marginalize=None):
         
         n_features = X.shape[0]
         X = X.reshape((n_features,-1))
 
-        error = {key: 0 for key in list(mXs.keys())}
-        PDY  = {key : np.dot(self.F[key],np.dot(self.D[key].T,X)) for key in list(mXs.keys())}
-        trPD = {key : np.sum(self.F[key]*self.D[key],1) for key in list(mXs.keys())}
-        # print('F.shape',F['s'].shape)
-        for key in list(mXs.keys()):
-            error[key] = np.sum((mXs[key] - PDY[key] + trPD[key][:,None]*X)**2)
+        if marginalize is None:
+            error = {key: 0 for key in list(mXs.keys())}
+            PDY  = {key : np.dot(self.F[key],np.dot(self.D[key].T,X)) for key in list(mXs.keys())}
+            trPD = {key : np.sum(self.F[key]*self.D[key],1) for key in list(mXs.keys())}
+            # print('F.shape',F['s'].shape)
+            for key in list(mXs.keys()):
+                error[key] = np.sum((mXs[key] - PDY[key] + trPD[key][:,None]*X)**2)
 
-        return error if not mean else np.sum(list(error.values()))
+            return error if not mean else np.sum(list(error.values()))
+        else:
+            PDY  = np.dot(self.F[marginalize],np.dot(self.D[marginalize].T,X))
+            trPD = np.sum(self.F[marginalize]*self.D[marginalize],1)
+            # print('F.shape',F['s'].shape)
+            return np.sum((mXs[marginalize] - PDY + trPD[:,None]*X)**2)
+
 
     def softhreshold(self, X, lamb):
         S_lamb = np.zeros(X.shape)
@@ -444,7 +450,7 @@ class EE_dPCA(BaseEstimator):
     def cal_W(self,W_i,ru,a,W,a_i):
         return W_i + ru * (2 * a - W - a_i)
 
-    def EE_dpca(self, X, mXs, pinvX, lamb, tau, T, ru):
+    def EE_dpca(self, X, mXs, pinvX, lamb, tau, T, ru, marginalize=None):
 
         n_features = X.shape[0]
         # print('X',X)
@@ -454,6 +460,61 @@ class EE_dPCA(BaseEstimator):
 
 
         D, F = {}, {}
+
+        if marginalize is not None:
+            key = marginalize
+            lamb_ = lamb[key] if isinstance(lamb, dict) else lamb
+            tau_ = tau[key] if isinstance(tau, dict) else tau
+            mX = mXs[key].reshape((n_features, -1))  # called X_phi in paper
+            theta_hat = np.dot(mX,pinvX)
+            W = theta_hat.copy()
+            W_1 = theta_hat.copy()
+            W_2 = theta_hat.copy()
+            W_3 = theta_hat.copy()
+            W_4 = theta_hat.copy()
+            # print('max entry:', np.max(theta_hat))
+            # print('max singlar:', np.linalg.svd(theta_hat, compute_uv=False)[0])
+
+            # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
+            # a = self.prox_2(np.zeros(theta_hat.shape), theta_hat, lamb_)
+            # print('Non-zeros (a):', np.sum(np.abs(a)>1e-4))
+            for i in range(T):
+                # print('############')
+                # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
+                a_1 = self.softhreshold(W_1, 4 * lamb_)
+                
+                a_2 = self.prox_2(W_2, theta_hat, lamb_)
+                # print('Non-zeros (a2):', np.sum(np.abs(a_2)>1e-4))
+                # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
+                a_3 = self.prox_3(W_3, 4 * tau_)
+                
+                a_4 = self.prox_4(W_4, tau_, theta_hat)
+                # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
+                a = (a_1 + a_2 + a_3 + a_4) / 4
+                
+                # print(np.linalg.norm(a-W))
+                if np.linalg.norm(a-W)<1e-4:
+                    break
+
+                W_1 += ru * (2 * a - W - a_1)
+                W_2 += ru * (2 * a - W - a_2)
+                W_3 += ru * (2 * a - W - a_3)
+                W_4 += ru * (2 * a - W - a_4)
+                # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
+                W += ru * (a - W)
+                # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
+
+            print('Iters:', i+1)
+            print('None-zeros (W):', np.sum(np.abs(W)>1e-4))
+            if isinstance(self.n_components,dict):
+                U,s,V = randomized_svd(np.dot(W,rX), n_components=self.n_components[key],random_state=np.random.randint(10e5))
+            else:
+                U,s,V = randomized_svd(np.dot(W,rX), n_components=self.n_components,random_state=np.random.randint(10e5))
+
+            F[key] = U
+            D[key] = np.dot(U.T,W).T
+
+            return D, F
 
         for key in list(mXs.keys()):
             lamb_ = lamb[key] if isinstance(lamb, dict) else lamb
@@ -467,12 +528,18 @@ class EE_dPCA(BaseEstimator):
             # print('theta_hat',theta_hat)
             # print('mX',mX)
 
-  
+            # print('Non-zeros: ',np.sum(np.abs(theta_hat)>1e-4))
             # initialize W_1, W_2, W_3, W_4, W = DF
-            W = W_1 = W_2 = W_3 = W_4 = theta_hat
+            W = theta_hat.copy()
+            W_1 = theta_hat.copy()
+            W_2 = theta_hat.copy()
+            W_3 = theta_hat.copy()
+            W_4 = theta_hat.copy()
+            print('max entry:', np.max(theta_hat))
+            print('max singlar:', np.linalg.svd(theta_hat, compute_uv=False)[0])
             # Pool = multiprocessing.Pool()
             for i in range(T):
-
+                
                 # with pathos.multiprocessing.ProcessingPool(4) as pool:
                 # with multiprocessing.Pool(4) as pool:
 
@@ -507,7 +574,7 @@ class EE_dPCA(BaseEstimator):
                 W += ru * (a - W)
 
             print('Iters:', i+1)
-
+            print('None-zeros:', np.sum(np.abs(W)>1e-4))
             if isinstance(self.n_components,dict):
                 U,s,V = randomized_svd(np.dot(W,rX), n_components=self.n_components[key],random_state=np.random.randint(10e5))
                 # U,s,V = randomized_svd(W, n_components=self.n_components[key],random_state=np.random.randint(10e5))
@@ -761,7 +828,7 @@ class EE_dPCA(BaseEstimator):
 
         return trialX
 
-    def _fit(self, X, trialX=None, mXs=None, center=True, SVD=None, optimize=True,cross=True,hypers=None):
+    def _fit(self, X, trialX=None, mXs=None, center=True, SVD=None, optimize=True,cross=True,hypers=None, marginalize=None):
 
         def flat2d(A):
             return A.reshape((A.shape[0], -1))
@@ -813,7 +880,7 @@ class EE_dPCA(BaseEstimator):
 
         # lambda = 0.1, tau = 0.1, T = 10, ru = 1
         start = time.time()
-        self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 100, ru = self.rho)
+        self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 300, ru = self.rho, marginalize=marginalize)
         self.runtimecost = time.time() - start
 
     def transform(self, X, marginalization=None):
