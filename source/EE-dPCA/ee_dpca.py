@@ -318,11 +318,13 @@ class EE_dPCA(BaseEstimator):
                 print("Warning: Optimal regularization parameter lies at the \
                        boundary of the search interval. Please provide \
                        different search list (key: lams).")
-                       
-        pos = np.unravel_index(np.argmin(totalscore),totalscore.shape)
-        # set minimum as new lambda
-        self.hyper_lamb = lams[pos[0]]
-        self.hyper_tau = taus[pos[1]]
+        
+        self.hyper_lamb = {}
+        self.hyper_tau = {}
+        for key in scores.keys():
+            pos = np.unravel_index(np.argmin(scores[key]),scores[key].shape)
+            self.hyper_lamb[key] = lams[pos[0]]
+            self.hyper_tau[key] = taus[pos[1]]
 
         print('best lambda,tau = ',self.hyper_lamb,self.hyper_tau)
 
@@ -407,15 +409,15 @@ class EE_dPCA(BaseEstimator):
         S_lamb[X > lamb] = X[X > lamb] - lamb
         S_lamb[X < -lamb] = X[X < -lamb] + lamb
         # print(S_lamb)
-        return np.array(S_lamb)
+        return S_lamb
 
     def prox_2(self, W, theta_hat, lamb):
         # print('W.shape:',W.shape)
         # print('theta_hat.shape:',theta_hat.shape)
         theta_plus = theta_hat + lamb
         theta_minus = theta_hat - lamb
+        result = W.copy()
         # print(neg_lamb)
-        result = W
         result[W > theta_plus] = theta_plus[W > theta_plus]
         result[W < theta_minus] = theta_minus[W < theta_minus]
         return result
@@ -423,8 +425,7 @@ class EE_dPCA(BaseEstimator):
     def prox_3(self, W, tau):
         U, sigma, VT = np.linalg.svd(W, full_matrices=False)
 
-        S_tau = self.softhreshold(sigma, tau)
-        return (U * S_tau) @ VT
+        return (U * self.softhreshold(sigma, tau)) @ VT
 
     def prox_4(self, W, tau, theta_hat):
         U, sigma, VT = np.linalg.svd(W - theta_hat, full_matrices=False)
@@ -455,6 +456,8 @@ class EE_dPCA(BaseEstimator):
         D, F = {}, {}
 
         for key in list(mXs.keys()):
+            lamb_ = lamb[key] if isinstance(lamb, dict) else lamb
+            tau_ = tau[key] if isinstance(tau, dict) else tau
             # print('key',key)
             mX = mXs[key].reshape((n_features, -1))  # called X_phi in paper
             # mX = mXs[key].reshape((-1, n_features))
@@ -473,16 +476,16 @@ class EE_dPCA(BaseEstimator):
                 # with pathos.multiprocessing.ProcessingPool(4) as pool:
                 # with multiprocessing.Pool(4) as pool:
 
-                a_1 = self.softhreshold(W_1, 4 * lamb)
+                a_1 = self.softhreshold(W_1, 4 * lamb_)
                 # print(type(lamb))
                 # a_1 = pool.starmap(self.softhreshold,zip(W_1,[4 * lamb]))
 
-                a_2 = self.prox_2(W_2, theta_hat, lamb)
+                a_2 = self.prox_2(W_2, theta_hat, lamb_)
                 # a_2 = pool.map(self.prox_nuclear_norm, W_2, theta_hat, lamb)
 
-                a_3 = self.prox_3(W_3, 4 * tau)
+                a_3 = self.prox_3(W_3, 4 * tau_)
                 # a_3 = pool.map(self.prox_3,W_3, 4 * tau)
-                a_4 = self.prox_4(W_4, tau, theta_hat)
+                a_4 = self.prox_4(W_4, tau_, theta_hat)
                 # a_4 = pool.map(self.prox_4,W_4, tau, theta_hat)
 
                 a = (a_1 + a_2 + a_3 + a_4) / 4
@@ -493,25 +496,28 @@ class EE_dPCA(BaseEstimator):
                 W_3 = pool.map(self.cal_W,W_3,ru,a,W,a_3)
                 W_4 = pool.map(self.cal_W,W_4,ru,a,W,a_4)'''
 
-                W_1 = W_1 + ru * (2 * a - W - a_1)
-                W_2 = W_2 + ru * (2 * a - W - a_2)
-                W_3 = W_3 + ru * (2 * a - W - a_3)
-                W_4 = W_4 + ru * (2 * a - W - a_4)
-
-                if np.linalg.norm(a-W)<1e-4:
+                if np.linalg.norm(a-W)<1e-6:
                     break
 
-                W = W + ru * (a - W)
+                W_1 += ru * (2 * a - W - a_1)
+                W_2 += ru * (2 * a - W - a_2)
+                W_3 += ru * (2 * a - W - a_3)
+                W_4 += ru * (2 * a - W - a_4)
 
+                W += ru * (a - W)
+
+            print('Iters:', i+1)
 
             if isinstance(self.n_components,dict):
                 U,s,V = randomized_svd(np.dot(W,rX), n_components=self.n_components[key],random_state=np.random.randint(10e5))
+                # U,s,V = randomized_svd(W, n_components=self.n_components[key],random_state=np.random.randint(10e5))
                 # U,s,V = np.linalg.svd(np.dot(W,rX))
                 # # s = s[s<1e-4]
                 # print(s[s<1e-4].shape)
                 # print(U.shape)
             else:
                 U,s,V = randomized_svd(np.dot(W,rX), n_components=self.n_components,random_state=np.random.randint(10e5))
+                # U,s,V = randomized_svd(W, n_components=self.n_components,random_state=np.random.randint(10e5))
                 # U,s,V = np.linalg.svd(np.dot(W,rX))
                 # sum_s_q = 0
                 # sum_s = np.sum(s)

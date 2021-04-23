@@ -30,12 +30,13 @@ def explained_variance(F, X_trans, Xfull, D=None, mXs=None):
     
 
     if D is not None and mXs is not None:
-        results['totalMarginVar'] = { key: np.sum(mX**2) for key, mX in mXs.items() }
+        mXs_ = {key:mX.reshape([mX.shape[0], -1]) for key,mX in mXs.items()}
+        for key in mXs_.keys():
+            mXs_[key] -= np.mean(mXs_[key], axis=1)[:, None]
+        results['totalMarginVar'] = { key: np.sum(mX_**2) for key, mX_ in mXs_.items() }
         # print('totalMarginVar')
         if isinstance(D, dict):
             P, q = list(F.values())[0].shape
-            results['marginVar'] = [{} for _ in range(len(mXs)*q)]
-            results['cumulativeVar'] = np.zeros(len(mXs)*q)
             componentVars = np.zeros(len(mXs)*q)
             F_flat = np.zeros((len(mXs)*q, P))
             D_flat = np.zeros((len(mXs)*q, P))
@@ -51,17 +52,19 @@ def explained_variance(F, X_trans, Xfull, D=None, mXs=None):
             # print('componentVar')
         else:
             q = F.shape[1]
-            results['marginVar'] = [{} for _ in range(q)]
-            results['cumulativeVar'] = np.zeros(q)
             results['componentVar'] = np.zeros(q)
-            F_flat = F.T
-            D_flat = D.T
             for i in range(q):
-                results['componentVar'][i] = 100 - np.sum((X - F_flat[i, :][:, None] @ (D_flat[i, :][None, :] @ X))**2) / results['totalVar'] * 100
+                results['componentVar'][i] = 100 - np.sum((X - F[:, i][:, None] @ (D[:, i][None, :] @ X))**2) / results['totalVar'] * 100
+            idx_sorted = np.argsort(-results['componentVar'])
+            results['componentVar'] = results['componentVar'][idx_sorted]
+            F_flat = F.T[idx_sorted, :]
+            D_flat = D.T[idx_sorted, :]
             # print('componentVar')
 
-        mXs_ = {key:mX.reshape([mX.shape[0], -1]) for key,mX in mXs.items()}
-        for i in range(F_flat.shape[0]):
+        results['marginVar'] = [{} for _ in range(q)]
+        results['cumulativeVar'] = np.zeros(q)
+        
+        for i in range(q):
             results['cumulativeVar'][i] = 100 - np.sum((X - F_flat[:i+1, :].T @ (D_flat[:i+1, :] @ X))**2) / results['totalVar'] * 100
             # print('cumulativeVar', i)
             for key, mX_ in mXs_.items():
@@ -72,7 +75,9 @@ def explained_variance(F, X_trans, Xfull, D=None, mXs=None):
         results['cumulativeVar'] = np.zeros(q)
         results['componentVar'] = np.zeros(q)
         for i in range(q):
-            results['cumulativeVar'][i] = 100 - np.sum((X - F[:, :i+1] @ X_trans[:i+1, :])**2) / results['totalVar'] * 100
             results['componentVar'][i] = 100 - np.sum((X - F[:, i][:, None] @ X_trans[i, :][None, :])**2) / results['totalVar'] * 100
-
+        idx_sorted = np.argsort(-results['componentVar'])
+        results['componentVar'] = results['componentVar'][idx_sorted]
+        for i in range(q):
+            results['cumulativeVar'][i] = 100 - np.sum((X - F[:, idx_sorted[:i+1]] @ X_trans[idx_sorted[:i+1], :])**2) / results['totalVar'] * 100
     return results

@@ -5,6 +5,7 @@ from sklearn.decomposition import PCA, SparsePCA
 import settings
 import os
 import time
+import metrics
 
 def simulation(N, P, T, S, D, sparsity):
     q = 10 # n components
@@ -21,9 +22,13 @@ def simulation(N, P, T, S, D, sparsity):
     l2_dpca = dPCA.dPCA(n_components=q, labels='sdt', regularizer='auto')
     l2_dpca.protect=['t']
     spca = SparsePCA(n_components=q)
-    eedpca = EE_dPCA(n_components=q, labels='sdt', rho=8e-3)
+    eedpca = EE_dPCA(n_components=q, labels='sdt', rho=0.5)
     eedpca.protect=['t']
 
+    print('#################################################################################################################################################')
+    print('#################################################################################################################################################')
+    print('#################################################################################################################################################')
+    print('#################################################################################################################################################')
     print('Start PCA...')
     start = time.time()
     Xt_pca = pca.fit_transform(X_.T) # (SDT, q)
@@ -39,17 +44,17 @@ def simulation(N, P, T, S, D, sparsity):
 
     print('Start dPCA...')
     Xt_dpca = dpca.fit_transform(X, trialX) # (q, S, D, T)  
-    timecost[2] = dpca.runtimecost
+    timecost[2] = dpca.runtimecost / len(Xt_dpca)
     print('dPCA time cost: {}'.format(timecost[2]))
 
     print('Start L2_dPCA...')
     Xt_l2_dpca = l2_dpca.fit_transform(X, trialX) # (q, S, D, T)
-    timecost[3] = l2_dpca.runtimecost
+    timecost[3] = l2_dpca.runtimecost / len(Xt_l2_dpca)
     print('L2_dPCA time cost: {}'.format(timecost[3]))
     
     print('Start EE-dPCA...')
     Xt_eedpca = eedpca.fit_transform(X, trialX) # (q, S, D, T)
-    timecost[4] = eedpca.runtimecost
+    timecost[4] = eedpca.runtimecost / len(Xt_eedpca)
     print('EE-dPCA time cost: {}'.format(timecost[4]))
 
     D_pca = pca.components_.T # (P, q)
@@ -87,4 +92,7 @@ def simulation(N, P, T, S, D, sparsity):
     np.save('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/timecost.npy'.format(N, P, S, D, T, sparsity), timecost)
     print('Done.')
 
+exp_start = time.time()
 settings.traverse(simulation)
+print('Total exp time:', time.time() - exp_start)
+metrics.metric()
