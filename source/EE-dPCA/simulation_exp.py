@@ -22,7 +22,7 @@ def simulation(N, P, T, S, D, sparsity):
     l2_dpca = dPCA.dPCA(n_components=q, labels='sdt', regularizer='auto')
     l2_dpca.protect=['t']
     spca = SparsePCA(n_components=q)
-    eedpca = EE_dPCA(n_components=q, labels='sdt', rho=0.5)
+    eedpca = EE_dPCA(n_components=q, labels='sdt', rho=1)
     eedpca.protect=['t']
 
     print('#################################################################################################################################################')

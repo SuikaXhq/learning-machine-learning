@@ -504,8 +504,8 @@ class EE_dPCA(BaseEstimator):
                 W += ru * (a - W)
                 # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
 
-            print('Iters:', i+1)
-            print('None-zeros (W):', np.sum(np.abs(W)>1e-4))
+            # print('Iters:', i+1)
+            # print('None-zeros (W):', np.sum(np.abs(W)>1e-4))
             if isinstance(self.n_components,dict):
                 U,s,V = randomized_svd(np.dot(W,rX), n_components=self.n_components[key],random_state=np.random.randint(10e5))
             else:
@@ -535,8 +535,8 @@ class EE_dPCA(BaseEstimator):
             W_2 = theta_hat.copy()
             W_3 = theta_hat.copy()
             W_4 = theta_hat.copy()
-            print('max entry:', np.max(theta_hat))
-            print('max singlar:', np.linalg.svd(theta_hat, compute_uv=False)[0])
+            # print('max entry:', np.max(theta_hat))
+            # print('max singlar:', np.linalg.svd(theta_hat, compute_uv=False)[0])
             # Pool = multiprocessing.Pool()
             for i in range(T):
                 
@@ -573,8 +573,8 @@ class EE_dPCA(BaseEstimator):
 
                 W += ru * (a - W)
 
-            print('Iters:', i+1)
-            print('None-zeros:', np.sum(np.abs(W)>1e-4))
+            # print('Iters:', i+1)
+            # print('None-zeros:', np.sum(np.abs(W)>1e-4))
             if isinstance(self.n_components,dict):
                 U,s,V = randomized_svd(np.dot(W,rX), n_components=self.n_components[key],random_state=np.random.randint(10e5))
                 # U,s,V = randomized_svd(W, n_components=self.n_components[key],random_state=np.random.randint(10e5))
@@ -880,7 +880,7 @@ class EE_dPCA(BaseEstimator):
 
         # lambda = 0.1, tau = 0.1, T = 10, ru = 1
         start = time.time()
-        self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 300, ru = self.rho, marginalize=marginalize)
+        self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 100, ru = self.rho, marginalize=marginalize)
         self.runtimecost = time.time() - start
 
     def transform(self, X, marginalization=None):
