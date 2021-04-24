@@ -107,10 +107,12 @@ def metric(flags='111'):
         def calculate_EV(N, P, T, S, D, sparsity):
             trialX = np.load('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/Data.npy'.format(N, P, S, D, T, sparsity))
             X = np.mean(trialX, axis=0)
-            mXs = {}
-            mXs['s'] = np.load('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_s.npy'.format(N, P, S, D, T, sparsity))
-            mXs['d'] = np.load('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_d.npy'.format(N, P, S, D, T, sparsity))
-            mXs['t'] = np.load('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_t.npy'.format(N, P, S, D, T, sparsity))
+            eedpca = ee_dpca.EE_dPCA(labels='sdt')
+            mXs = eedpca._marginalize(X)
+            # mXs = {}
+            # mXs['s'] = np.load('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_s.npy'.format(N, P, S, D, T, sparsity))
+            # mXs['d'] = np.load('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_d.npy'.format(N, P, S, D, T, sparsity))
+            # mXs['t'] = np.load('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/X_t.npy'.format(N, P, S, D, T, sparsity))
 
             Xt_pca = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/Xt_pca.npy'.format(N, P, S, D, T, sparsity), allow_pickle=True).T
             Xt_dpca = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/Xt_dpca.npy'.format(N, P, S, D, T, sparsity), allow_pickle=True).item()
