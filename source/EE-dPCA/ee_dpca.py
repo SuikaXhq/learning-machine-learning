@@ -292,13 +292,13 @@ class EE_dPCA(BaseEstimator):
 
             print('start cross-val to get best lams')
             N = 6
-            lams = {key:np.linspace(0, max_lamb[key]/4, num=N)[1:] for key in max_lamb.keys()}
+            lams = {key:np.linspace(0, max_lamb[key], num=N)[1:] for key in max_lamb.keys()}
             # lams = np.logspace(0,N,num=N, base=1.4, endpoint=False)*1e-5
             # lams = np.logspace(0,math.log(max_lamb, base=base),num=N, base=base, endpoint=True)
 
         if taus == 'auto':
             N = 6
-            taus = {key:np.linspace(0, max_tau[key]/4, num=N)[1:] for key in max_tau.keys()}
+            taus = {key:np.linspace(0, max_tau[key], num=N)[1:] for key in max_tau.keys()}
             # taus = np.logspace(0,N,num=N, base=1.4, endpoint=False)*1e-5
             # taus = np.logspace(0,10,num=N, base=base, endpoint=True)
 
@@ -463,6 +463,7 @@ class EE_dPCA(BaseEstimator):
 
         if marginalize is not None:
             key = marginalize
+            print('key',key)
             lamb_ = lamb[key] if isinstance(lamb, dict) else lamb
             tau_ = tau[key] if isinstance(tau, dict) else tau
             mX = mXs[key].reshape((n_features, -1))  # called X_phi in paper
@@ -493,7 +494,7 @@ class EE_dPCA(BaseEstimator):
                 a = (a_1 + a_2 + a_3 + a_4) / 4
                 
                 # print(np.linalg.norm(a-W))
-                if np.linalg.norm(a-W)<1e-4:
+                if np.linalg.norm(a-W)<1e-6:
                     break
 
                 W_1 += ru * (2 * a - W - a_1)
@@ -503,7 +504,7 @@ class EE_dPCA(BaseEstimator):
                 # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
                 W += ru * (a - W)
                 # print('Non-zeros (S(theta)):', np.sum(np.abs(self.softhreshold(theta_hat, lamb_))>1e-4))
-
+            if i == T-1: print('Warn: Max iter exceeded.')
             # print('Iters:', i+1)
             # print('None-zeros (W):', np.sum(np.abs(W)>1e-4))
             if isinstance(self.n_components,dict):
@@ -519,7 +520,7 @@ class EE_dPCA(BaseEstimator):
         for key in list(mXs.keys()):
             lamb_ = lamb[key] if isinstance(lamb, dict) else lamb
             tau_ = tau[key] if isinstance(tau, dict) else tau
-            # print('key',key)
+            print('key',key)
             mX = mXs[key].reshape((n_features, -1))  # called X_phi in paper
             # mX = mXs[key].reshape((-1, n_features))
             # print('mX.shape',mX.shape)
@@ -551,6 +552,7 @@ class EE_dPCA(BaseEstimator):
                 # a_2 = pool.map(self.prox_nuclear_norm, W_2, theta_hat, lamb)
 
                 a_3 = self.prox_3(W_3, 4 * tau_)
+                # print('smalls(a3):', np.sum(np.abs(a_3)<1e-10))
                 # a_3 = pool.map(self.prox_3,W_3, 4 * tau)
                 a_4 = self.prox_4(W_4, tau_, theta_hat)
                 # a_4 = pool.map(self.prox_4,W_4, tau, theta_hat)
@@ -572,7 +574,7 @@ class EE_dPCA(BaseEstimator):
                 W_4 += ru * (2 * a - W - a_4)
 
                 W += ru * (a - W)
-
+            if i == T-1: print('Warn: Max iter exceeded.')
             # print('Iters:', i+1)
             # print('None-zeros:', np.sum(np.abs(W)>1e-4))
             if isinstance(self.n_components,dict):
@@ -880,7 +882,7 @@ class EE_dPCA(BaseEstimator):
 
         # lambda = 0.1, tau = 0.1, T = 10, ru = 1
         start = time.time()
-        self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 100, ru = self.rho, marginalize=marginalize)
+        self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 500, ru = self.rho, marginalize=marginalize)
         self.runtimecost = time.time() - start
 
     def transform(self, X, marginalization=None):
