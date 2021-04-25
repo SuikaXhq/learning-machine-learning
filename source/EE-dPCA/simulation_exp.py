@@ -6,6 +6,7 @@ import settings
 import os
 import time
 import metrics
+import sys
 
 def simulation(N, P, T, S, D, sparsity, flag='11111'):
     q = 10 # n components
@@ -106,7 +107,7 @@ def simulation(N, P, T, S, D, sparsity, flag='11111'):
     np.save('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/timecost.npy'.format(N, P, S, D, T, sparsity), timecost)
     print('Done.')
 
-flags = input('Method flags [11111]: ')
+flags = sys.argv[1] if len(sys.argv)==2 else input('Method flags [11111]: ')
 if flags=='': flags='11111'
 exp_start = time.time()
 settings.traverse(simulation, flags)
