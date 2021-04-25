@@ -434,7 +434,10 @@ class EE_dPCA(BaseEstimator):
         return (U * self.softhreshold(sigma, tau)) @ VT
 
     def prox_4(self, W, tau, theta_hat):
-        U, sigma, VT = np.linalg.svd(W - theta_hat, full_matrices=False)
+        temp = W - theta_hat
+        if (np.sum(np.isinf(temp))+np.sum(np.isnan(temp))) != 0:
+            print('NaN/Infs:', np.sum(np.isinf(temp))+np.sum(np.isnan(temp)))
+        U, sigma, VT = np.linalg.svd(temp, full_matrices=False)
 
         if sigma[0] <= tau: # sigma[0] == max(sigma)
             return W
