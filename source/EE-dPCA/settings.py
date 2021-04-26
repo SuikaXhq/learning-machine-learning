@@ -2,10 +2,10 @@ def get_P():
     return [100, 200, 300, 400, 500, 600]
 
 def get_T():
-    return 180
+    return 150
 
 def get_S():
-    return [8, 16, 24, 32, 40, 48]
+    return [6, 12, 18, 24, 30, 36]
 
 def get_D():
     return 4
