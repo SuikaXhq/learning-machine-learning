@@ -72,17 +72,17 @@ def metric(flags='111'):
             F = np.load('simulation/result/N{}_P{}_S{}_D{}_T{}_s{}/F_{}.npy'.format(N, P, S, D, T, sparsity, method), allow_pickle=True).item()
 
             # S
-            pred_s = ( np.abs(( F['s'] @ (Xt['s'].reshape( (Xt['s'].shape[0], -1) ) ) ).reshape( (F['s'].shape[0], ) + Xt['s'].shape[1:] ))<1e-6).astype(np.int8)
+            pred_s = ( np.abs(( F['s'] @ (Xt['s'].reshape( (Xt['s'].shape[0], -1) ) ) ).reshape( (F['s'].shape[0], ) + Xt['s'].shape[1:] ))<1e-2).astype(np.int8)
             TP_s, TN_s, FP_s, FN_s = compare(gt_s, pred_s)
             df_s.loc[df_s.shape[0]] = {'N': N, 'P':P, 'S':S, 'D':D, 'T':T, 'sparsity':sparsity, 'TP':TP_s, 'TN':TN_s, 'FP':FP_s, 'FN':FN_s}
 
             # D
-            pred_d = ( np.abs(( F['d'] @ (Xt['d'].reshape( (Xt['d'].shape[0], -1) ) ) ).reshape( (F['d'].shape[0], ) + Xt['d'].shape[1:] ))<1e-6).astype(np.int8)
+            pred_d = ( np.abs(( F['d'] @ (Xt['d'].reshape( (Xt['d'].shape[0], -1) ) ) ).reshape( (F['d'].shape[0], ) + Xt['d'].shape[1:] ))<1e-2).astype(np.int8)
             TP_d, TN_d, FP_d, FN_d = compare(gt_d, pred_d)
             df_d.loc[df_d.shape[0]] = {'N': N, 'P':P, 'S':S, 'D':D, 'T':T, 'sparsity':sparsity, 'TP':TP_d, 'TN':TN_d, 'FP':FP_d, 'FN':FN_d}
 
             # T
-            pred_t = ( np.abs(( F['t'] @ (Xt['t'].reshape( (Xt['t'].shape[0], -1) ) ) ).reshape( (F['t'].shape[0], ) + Xt['t'].shape[1:] ))<1e-6).astype(np.int8)
+            pred_t = ( np.abs(( F['t'] @ (Xt['t'].reshape( (Xt['t'].shape[0], -1) ) ) ).reshape( (F['t'].shape[0], ) + Xt['t'].shape[1:] ))<1e-2).astype(np.int8)
             TP_t, TN_t, FP_t, FN_t = compare(gt_t, pred_t)
             df_t.loc[df_t.shape[0]] = {'N': N, 'P':P, 'S':S, 'D':D, 'T':T, 'sparsity':sparsity, 'TP':TP_t, 'TN':TN_t, 'FP':FP_t, 'FN':FN_t}
         

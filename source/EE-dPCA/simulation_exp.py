@@ -9,7 +9,7 @@ import metrics
 import sys
 
 def simulation(N, P, T, S, D, sparsity, flag='11111'):
-    q = 10 # n components
+    q = 20 # n components
 
     trialX = np.load('simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/Data.npy'.format(N, P, S, D, T, sparsity))
     print('Loaded simulation/data/N{}_P{}_S{}_D{}_T{}_s{}/Data.npy.'.format(N, P, S, D, T, sparsity))
@@ -111,5 +111,7 @@ flags = sys.argv[1] if len(sys.argv)==2 else input('Method flags [11111]: ')
 if flags=='': flags='11111'
 exp_start = time.time()
 settings.traverse(simulation, flags)
+# simulation(10, 300, 180, 24, 4, 0.8, flags)
+# settings.traverse1(simulation, flags)
 print('Total exp time:', time.time() - exp_start)
 metrics.metric()

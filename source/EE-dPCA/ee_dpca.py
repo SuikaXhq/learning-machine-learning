@@ -429,15 +429,29 @@ class EE_dPCA(BaseEstimator):
         return result
 
     def prox_3(self, W, tau):
-        U, sigma, VT = np.linalg.svd(W, full_matrices=False)
+        try:
+            U, sigma, VT = np.linalg.svd(W, full_matrices=False)
+        except np.linalg.LinAlgError:
+            print(W)
+            print('NaN/Infs:', np.sum(np.isinf(W))+np.sum(np.isnan(W)))
+            print('zeros:', np.sum(np.abs(W)<1e-6))
+            np.save('W_error.npy', W)
+            return W
 
         return (U * self.softhreshold(sigma, tau)) @ VT
 
     def prox_4(self, W, tau, theta_hat):
         temp = W - theta_hat
-        if (np.sum(np.isinf(temp))+np.sum(np.isnan(temp))) != 0:
+        # if (np.sum(np.isinf(temp))+np.sum(np.isnan(temp))) != 0:
+        #     print('NaN/Infs:', np.sum(np.isinf(temp))+np.sum(np.isnan(temp)))
+        try:
+            U, sigma, VT = np.linalg.svd(temp, full_matrices=False)
+        except np.linalg.LinAlgError:
+            print(temp)
             print('NaN/Infs:', np.sum(np.isinf(temp))+np.sum(np.isnan(temp)))
-        U, sigma, VT = np.linalg.svd(temp, full_matrices=False)
+            print('zeros:', np.sum(np.abs(temp)<1e-6))
+            np.save('temp_error.npy', temp)
+            return W
 
         if sigma[0] <= tau: # sigma[0] == max(sigma)
             return W
@@ -885,7 +899,7 @@ class EE_dPCA(BaseEstimator):
 
         # lambda = 0.1, tau = 0.1, T = 10, ru = 1
         start = time.time()
-        self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 500, ru = self.rho, marginalize=marginalize)
+        self.D, self.F = self.EE_dpca(regX, regmXs, pinvX = pregX, lamb = self.hyper_lamb, tau = self.hyper_tau, T = 100, ru = self.rho, marginalize=marginalize)
         self.runtimecost = time.time() - start
 
     def transform(self, X, marginalization=None):

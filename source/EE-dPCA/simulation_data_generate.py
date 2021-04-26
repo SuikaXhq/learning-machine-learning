@@ -8,14 +8,14 @@ def generate_data(N, P, T, S, D, sparsity):
     latent_P = int(P*(1-sparsity))
     s_support_set = np.random.choice(np.arange(P), latent_P, replace=False)
     x_s_latent = np.zeros([S, latent_P])
-    x_s_0 = np.arange(S)/(S-1)*3*S-3/2*S
+    x_s_0 = np.arange(S)/(S-1)*S-1/2*S
     x_s_latent[:, 0] = x_s_0
     for p in range(1,latent_P):
         x_s_latent[:, p] = x_s_latent[:, p-1][list(range(1,S))+[0]]
     
     # generate x_t
     t_support_set = np.random.choice(np.arange(P), latent_P, replace=False)
-    x_t_0 = np.arange(T)/(T-1)*10
+    x_t_0 = np.arange(T)/(T-1)*np.sqrt(T)
     x_t_latent = np.random.randn(latent_P)[None, :] * x_t_0[:, None]
 
     # generate x_d
